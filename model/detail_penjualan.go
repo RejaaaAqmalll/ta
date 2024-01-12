@@ -6,4 +6,6 @@ type DetailPenjualan struct {
 	ProdukIdProduk       int     `json:"produk_id_produk" gorm:"index"`
 	JumlahProduk         int     `json:"jumlah_produk"`
 	SubTotal             float64 `json:"sub_total"`
+	Produk               *Produk `json:"produk" gorm:"foreignkey:id_produk;association_foreignkey:produk_id_produk;references:produk_id_produk"`
+	BaseModel
 }

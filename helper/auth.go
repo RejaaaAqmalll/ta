@@ -2,7 +2,6 @@ package helper
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"ta-kasir/model"
 	"ta-kasir/model/request"
@@ -13,10 +12,14 @@ import (
 )
 
 func GenerateToken(data model.User) (string, error) {
-	godotenv.Load()
+	e := godotenv.Load()
+
+	if e != nil {
+		return "", e	
+	}
 
 	secret := []byte(os.Getenv("SECRET"))
-	fmt.Println(string(secret))
+	// fmt.Println(string(secret))
 	if len(secret) == 0 {
 		return "", errors.New("JWT_SECRET is empty")
 	}
@@ -34,7 +37,7 @@ func GenerateToken(data model.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	
 	tokenString, err := token.SignedString(secret)
-	fmt.Println(string(secret))
+	// fmt.Println(string(secret))
 
 	if err != nil {
 		return "", err	

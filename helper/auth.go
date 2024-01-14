@@ -14,7 +14,7 @@ import (
 func GenerateToken(data model.User) (string, error) {
 	e := godotenv.Load()
 
-	if e != nil {
+	if e != nil && !os.IsNotExist(e){
 		return "", e	
 	}
 
@@ -38,6 +38,7 @@ func GenerateToken(data model.User) (string, error) {
 	
 	tokenString, err := token.SignedString(secret)
 	// fmt.Println(string(secret))
+	// fmt.Println(tokenString)
 
 	if err != nil {
 		return "", err	

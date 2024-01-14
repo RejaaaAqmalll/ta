@@ -5,5 +5,6 @@ type Produk struct {
 	NamaProduk string  `json:"nama_produk"`
 	Harga      float64 `json:"harga"`
 	Stok       int     `json:"stok"`
+	Gambar     string  `json:"gambar" gorm:"type:text"`
 	BaseModel
 }

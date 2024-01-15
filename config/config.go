@@ -33,6 +33,8 @@ func ConnectDatabase() *gorm.DB {
 	}
 	err = db.AutoMigrate(
 		&model.User{},
+		&model.Produk{},
+		
 	)
 
 	if err != nil {

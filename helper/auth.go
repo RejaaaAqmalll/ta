@@ -17,7 +17,6 @@ func GenerateToken(data model.User) (string, error) {
 	if e != nil && !os.IsNotExist(e){
 		return "", e	
 	}
-
 	secret := []byte(os.Getenv("SECRET"))
 	// fmt.Println(string(secret))
 	if len(secret) == 0 {
@@ -29,6 +28,7 @@ func GenerateToken(data model.User) (string, error) {
 		UserId: data.Iduser,
 		Nama: data.Username,
 		Role: data.Role,
+		Email: data.Email,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt: issuedAt,
 		},

@@ -59,9 +59,9 @@ if err != nil {
 }
 
 user := model.User{
-	Iduser: 1,
 	Username: formRegister.Username,
 	Email: formRegister.Email,
+	Role: 1,
 	Password: string(hash),
 }
 err = db.Debug().Create(&user).Error
@@ -102,7 +102,9 @@ func Login(c *gin.Context)  {
 	db := config.ConnectDatabase()
 
 	var user model.User
-	err = db.Debug().Where("email = ?", formLogin.Email).First(&user).Error
+	err = db.Debug().Where("email = ?", formLogin.Email).
+	Where("hapus = ?", 0).
+	First(&user).Error
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Status: http.StatusBadRequest,

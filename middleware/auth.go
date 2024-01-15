@@ -15,12 +15,12 @@ import (
 func AuthCheck() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		godotenv.Load()
-		tokenString := c.GetHeader("Authorization")
+		tokenString := c.Request.Header.Get("Authorization")
 
 		if tokenString == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
 				Status:  http.StatusUnauthorized,
-				Message: "Unauthorized",
+				Message: "Unauthorized, (token kosong)",
 			})
 			return
 		}
@@ -29,27 +29,27 @@ func AuthCheck() gin.HandlerFunc {
 		if len(split) != 2 {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
 				Status:  http.StatusUnauthorized,
-				Message: "Unauthorized",
+				Message: "Unauthorized (token tidak sesuai format)",
 			})
 			return
 		}
 		if split[0] != "Bearer" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
 				Status:  http.StatusUnauthorized,
-				Message: "Unauthorized",
+				Message: "Unauthorized (token tidak sesuai formar Bearer)",
 			})
 			return
 		}
 
 		var claims request.JwtClaim
 		_, err := jwt.ParseWithClaims(split[1], &claims, func(token *jwt.Token) (interface{}, error)  {
-			return []byte(os.Getenv("JWT_SECRET")), nil
+			return []byte(os.Getenv("SECRET")), nil
 		})
 		c.Set("jwt_claims", claims)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
 				Status: http.StatusUnauthorized,
-				Message: "Unauthorized",
+				Message: err.Error(),
 			})
 			return	
 		}

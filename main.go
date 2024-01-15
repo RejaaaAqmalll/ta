@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"ta-kasir/config"
 	"ta-kasir/controller/auth"
+	"ta-kasir/controller/worker"
+	"ta-kasir/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,17 +24,39 @@ func main() {
 		c.Next()
 	})
 
+	authmiddleware := middleware.AuthCheck
 	route.POST("/register", auth.Register)
 	route.POST("/login", auth.Login)
 
-	user := route.Group("/user")
-	{
-		user.GET("/test", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "test",
-			})
+	route.GET("/test", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "test",
 		})
+	})
+
+// ====================== ADMIN ======================================
+	admin := route.Group("/admin")
+	{
+		admin.Use(authmiddleware())
+		// Worker
+		admin.POST("/add_worker", worker.AddWorker)
+		admin.PATCH("/edit_worker/:id")
+		admin.DELETE("/delete_worker/:id")
 	}
+	// user.GET("/test", func(c *gin.Context) {
+	// dataJWT, err := helper.GetClaims(c)
+	// if err != nil {
+	// 	c.JSON(500, gin.H{
+	// 		"message": err,
+	// 	})
+	// 	return
+	// }
+
+	// nama := dataJWT.Nama
+	// 	c.JSON(200, gin.H{
+	// 		"message": nama,
+	// 	})
+	// })
 	
 	route.Run(":8080")
 }

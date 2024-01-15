@@ -11,4 +11,5 @@ const (
 	UserNotFound        = "user not found, please signup"
 	IncorrectPassEmail  = "incorrect password or email"
 	FailedGenerateToken = "failed to generate token"
+	NoUserLogin         = "no user is currently logged in"
 )

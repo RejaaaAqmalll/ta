@@ -12,4 +12,5 @@ const (
 	IncorrectPassEmail  = "incorrect password or email"
 	FailedGenerateToken = "failed to generate token"
 	NoUserLogin         = "no user is currently logged in"
+	ParamEmpty          = "parameters cannot be empty"
 )

@@ -67,7 +67,7 @@ user := model.User{
 err = db.Debug().Create(&user).Error
 
 if err != nil {
-	c.JSON(http.StatusInternalServerError, response.Response{
+	c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 		Status: http.StatusInternalServerError,
 		Error: err,
 		Message: base.FailedCreateUser,

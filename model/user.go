@@ -1,7 +1,7 @@
 package model
 
 type User struct {
-	Iduser   int    `json:"iduser" gorm:"primary_key;index"`
+	Iduser   int    `json:"iduser" gorm:"primary_key;type:int(20)"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`

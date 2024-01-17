@@ -147,6 +147,4 @@ func Login(c *gin.Context)  {
 			"data_user": user,
 		},
 	})
-
-	
 }

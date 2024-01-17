@@ -6,3 +6,10 @@ type Response struct {
 	Error   error       `json:"error"`
 	Data    interface{} `json:"data"`
 }
+
+type ResponseTest struct {
+	Status  int    `json:"status"`
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	Data    string `json:"data"`
+}

@@ -43,6 +43,10 @@ func main() {
 		admin.POST("/add_worker", worker.AddWorker)
 		admin.PATCH("/edit_worker/:id", worker.EditWorker)
 		admin.DELETE("/delete_worker/:id", worker.DeleteWorker)
+
+
+		// Produk
+		admin.POST("/add_produk")
 	}
 
 // ====================== PETUGAS ======================================

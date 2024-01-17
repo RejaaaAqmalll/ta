@@ -6,4 +6,5 @@ const (
 	SuccessAddworker    = "add worker success"
 	SuccessEditWorker   = "edit worker success"
 	SuccessDeleteWorker = "delete worker success"
+	SuccessAddProduk    = "add produk success"
 )

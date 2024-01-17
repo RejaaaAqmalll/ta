@@ -13,4 +13,5 @@ const (
 	FailedGenerateToken = "failed to generate token"
 	NoUserLogin         = "no user is currently logged in"
 	ParamEmpty          = "parameters cannot be empty"
+	FileNotSupported    = "file type not supported"
 )

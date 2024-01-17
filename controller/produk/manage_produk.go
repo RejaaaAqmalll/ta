@@ -1,9 +1,11 @@
 package produk
 
 import (
+	"io"
 	"net/http"
 	"ta-kasir/base"
 	"ta-kasir/config"
+	"ta-kasir/helper"
 	"ta-kasir/model"
 	"ta-kasir/model/request"
 	"ta-kasir/model/response"
@@ -12,16 +14,16 @@ import (
 )
 
 func AddProduk(c *gin.Context) {
-	// _, err := helper.GetClaims(c)
+	_, err := helper.GetClaims(c)
 	
-	// if err != nil {
-	// 	c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-	// 		Status:  http.StatusUnauthorized,
-	// 		Error:   err,
-	// 		Message: base.NoUserLogin,
-	// 		Data:    nil,
-	// 	})
-	// }
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   err,
+			Message: base.NoUserLogin,
+			Data:    nil,
+		})
+	}
 
 	formAddProduk := request.AddProduk{}
 
@@ -42,6 +44,45 @@ func AddProduk(c *gin.Context) {
 			Status:  http.StatusBadRequest,
 			Error:   err,
 			Message: base.EmpetyField,
+			Data:    nil,
+		})
+		return
+	}
+
+	// validasi input file harus berupa gambar
+	src, err := file.Open()
+	if err != nil{
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+
+	defer src.Close()
+
+	buffer := make([]byte, 261)
+	_, err = src.Read(buffer)
+
+	if err != nil && err != io.EOF {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+	
+	// get mime type
+	kind := http.DetectContentType(buffer)
+	if kind == "" || !helper.IsSupportedImageFormat(kind) {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
+			Error:   err,
+			Message: base.FileNotSupported,
 			Data:    nil,
 		})
 		return
@@ -75,3 +116,4 @@ func AddProduk(c *gin.Context) {
 		Data:    produk,
 	})
 }
+

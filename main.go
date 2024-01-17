@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"ta-kasir/config"
 	"ta-kasir/controller/auth"
+	"ta-kasir/controller/produk"
 	"ta-kasir/controller/worker"
 	"ta-kasir/middleware"
 
@@ -46,7 +47,8 @@ func main() {
 
 
 		// Produk
-		admin.POST("/add_produk")
+		admin.POST("/add_produk", produk.AddProduk)
+		admin.PATCH("/edit_produk/:id", produk.EditProduk)
 	}
 
 // ====================== PETUGAS ======================================

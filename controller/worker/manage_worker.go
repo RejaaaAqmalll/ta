@@ -16,7 +16,7 @@ import (
 func AddWorker(c *gin.Context) {
 	addWorker := request.AddWorker{}
 
-	err := c.ShouldBindJSON(&addWorker)
+	err := c.ShouldBind(&addWorker)
 
 	if err != nil{
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
@@ -106,7 +106,7 @@ func EditWorker(c *gin.Context)  {
 
 	editWorker := request.EditWorker{}
 
-	err := c.ShouldBindJSON(&editWorker)
+	err := c.ShouldBind(&editWorker)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{

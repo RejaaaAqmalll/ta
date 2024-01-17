@@ -7,4 +7,5 @@ const (
 	SuccessEditWorker   = "edit worker success"
 	SuccessDeleteWorker = "delete worker success"
 	SuccessAddProduk    = "add produk success"
+	SuccessEditPorduk   = "edit produk success"
 )

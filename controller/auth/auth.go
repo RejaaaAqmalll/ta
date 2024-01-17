@@ -18,7 +18,7 @@ func Register(c *gin.Context) {
 	formRegister := request.Register{}
 
 	// Bind input
-	err := c.ShouldBindJSON(&formRegister)
+	err := c.ShouldBind(&formRegister)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, response.Response{
@@ -85,24 +85,24 @@ c.JSON(http.StatusOK, response.Response{
 }
 
 func Login(c *gin.Context)  {
+
 	formLogin := request.Login{}
 
-	err := c.ShouldBindJSON(&formLogin)
+	e := c.ShouldBind(&formLogin)
 
-	if err != nil {
+	if e != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Status: http.StatusBadRequest,
-			Error: err,
+			Error: e,
 			Message: base.EmpetyField,
 			Data: nil,
 		})
 		return
 	}
-
 	db := config.ConnectDatabase()
 
 	var user model.User
-	err = db.Debug().Where("email = ?", formLogin.Email).
+	err := db.Debug().Where("email = ?", formLogin.Email).
 	Where("hapus = ?", 0).
 	First(&user).Error
 	if err != nil {
@@ -115,7 +115,7 @@ func Login(c *gin.Context)  {
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(formLogin.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(c.PostForm("password")))
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{

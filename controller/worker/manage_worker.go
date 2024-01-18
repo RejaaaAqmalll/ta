@@ -253,7 +253,7 @@ func ListWorker(c *gin.Context)  {
 
 	db = db.Order("iduser ASC")
 	
-	dbAuth := db
+	dbAuth := config.ConnectDatabase()
 
 	err = dbAuth.Debug().Where("email = ?", dataJWT.Email).
 	Where("role = ?", 1).Where("hapus = ?", 0).First(&model.User{}).Error
@@ -287,5 +287,59 @@ func ListWorker(c *gin.Context)  {
 		Error:  nil,
 		Message: base.SuccessListWorker,
 		Data: workers,
+	})
+}
+
+func GetWorkerById(c *gin.Context)  {
+	dataJWT, err := helper.GetClaims(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status: http.StatusUnauthorized,
+			Error: err,
+			Message: base.NoUserLogin,
+			Data: nil,
+		})
+		return
+	}
+
+	idWorker := c.Param("id")
+
+	db := config.ConnectDatabase()
+
+	err = db.Debug().Where("email = ?", dataJWT.Email).
+	Where("role = ?", 1).Where("hapus = ?", 0).First(&model.User{}).Error
+
+	if  err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   err,
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
+	}
+
+	var worker model.User
+
+	err = db.Debug().Where("iduser = ?", idWorker).
+	Where("role = ?", 2).
+	First(&worker).Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status: http.StatusInternalServerError,
+			Error: err,
+			Message: err.Error(),
+			Data: nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{
+		Status: http.StatusOK,
+		Error:  nil,
+		Message: base.SuccessGetWorker,
+		Data: worker,
 	})
 }

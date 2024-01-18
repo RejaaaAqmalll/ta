@@ -42,6 +42,7 @@ func main() {
 
 		// Worker
 		admin.GET("/list_worker", worker.ListWorker)
+		admin.GET("/get_worker/:id", worker.GetWorkerById)
 		admin.POST("/add_worker", worker.AddWorker)
 		admin.PATCH("/edit_worker/:id", worker.EditWorker)
 		admin.DELETE("/delete_worker/:id", worker.DeleteWorker)

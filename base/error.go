@@ -14,4 +14,5 @@ const (
 	NoUserLogin         = "no user is currently logged in"
 	ParamEmpty          = "parameters cannot be empty"
 	FileNotSupported    = "file type not supported"
+	ShouldAdmin         = "user is not an admin"
 )

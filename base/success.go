@@ -8,4 +8,6 @@ const (
 	SuccessDeleteWorker = "delete worker success"
 	SuccessAddProduk    = "add produk success"
 	SuccessEditPorduk   = "edit produk success"
+	SuccessDeleteProduk = "delete produk success"
+	SuccessListWorker   = "get list worker success"
 )

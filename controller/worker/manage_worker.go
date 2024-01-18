@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func AddWorker(c *gin.Context) {
@@ -42,13 +43,13 @@ func AddWorker(c *gin.Context) {
 
 	var user model.User
 	err = db.Debug().Where("email = ?", dataJWT.Email).
-	Where("role = ?", 1).First(&user).Error
+	Where("role = ?", 1).Where("hapus = ?", 0).First(&user).Error
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status: http.StatusInternalServerError,
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status: http.StatusBadRequest,
 			Error: err,
-			Message: err.Error(),
+			Message: base.ShouldAdmin,
 			Data: nil,
 		})
 		return
@@ -66,12 +67,12 @@ func AddWorker(c *gin.Context) {
 		return
 	}
 
-worker := model.User{
-	Username: addWorker.Username,
-	Email: addWorker.Email,
-	Password: string(hash),
-	Role: 2,
-}
+	worker := model.User{
+		Username: addWorker.Username,
+		Email: addWorker.Email,
+		Password: string(hash),
+		Role: 2,
+	}
 	err = db.Debug().Create(&worker).Error
 
 	if err != nil {
@@ -133,13 +134,13 @@ func EditWorker(c *gin.Context)  {
 
 	var user model.User
 	err = db.Debug().Where("email = ?", dataJWT.Email).
-	Where("role = ?", 1).First(&user).Error
+	Where("role = ?", 1).Where("hapus = ?", 0).First(&user).Error
 
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status: http.StatusInternalServerError,
+	if err != nil && err == gorm.ErrRecordNotFound {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status: http.StatusBadRequest,
 			Error: err,
-			Message: err.Error(),
+			Message: base.ShouldAdmin,
 			Data: nil,
 		})
 		return
@@ -151,7 +152,7 @@ func EditWorker(c *gin.Context)  {
 	}
 
 	err = db.Debug().Where("iduser = ?", idWorker).
-	Updates(&worker).Where("role = ?", 2).Error
+	Updates(&worker).Where("role = ?", 2).Where("hapus = ?", 0).Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
@@ -198,13 +199,13 @@ func DeleteWorker(c *gin.Context) {
 
 	var user model.User
 	err = db.Debug().Where("email = ?", dataJWT.Email).
-	Where("role = ?", 1).First(&user).Error
+	Where("role = ?", 1).Where("hapus = ?", 0).First(&user).Error
 
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status: http.StatusInternalServerError,
+	if err != nil && err == gorm.ErrRecordNotFound {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status: http.StatusBadRequest,
 			Error: err,
-			Message: err.Error(),
+			Message: base.ShouldAdmin,
 			Data: nil,
 		})
 		return
@@ -228,5 +229,63 @@ func DeleteWorker(c *gin.Context) {
 		Error:  nil,
 		Message: base.SuccessDeleteWorker,
 		Data: nil,
+	})
+}
+
+func ListWorker(c *gin.Context)  {
+	dataJWT, err := helper.GetClaims(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status: http.StatusUnauthorized,
+			Error: err,
+			Message: base.NoUserLogin,
+			Data: nil,
+		})
+		return
+	}
+
+	db := config.ConnectDatabase()
+
+	key := c.Query("key")
+	if key != "" {
+		db = db.Where("email LIKE ? OR username LIKE ?", "%"+key+"%", "%"+key+"%")
+	}
+
+	db = db.Order("iduser ASC")
+	
+	dbAuth := db
+
+	err = dbAuth.Debug().Where("email = ?", dataJWT.Email).
+	Where("role = ?", 1).Where("hapus = ?", 0).First(&model.User{}).Error
+
+	if  err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   err,
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
+	}
+
+	var workers []model.User
+	err = db.Debug().Where("role = ?", 2).Where("hapus = ?", 0).
+	Find(&workers).Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status: http.StatusInternalServerError,
+			Error: err,
+			Message: err.Error(),
+			Data: nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{
+		Status: http.StatusOK,
+		Error:  nil,
+		Message: base.SuccessListWorker,
+		Data: workers,
 	})
 }

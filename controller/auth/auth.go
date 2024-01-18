@@ -85,7 +85,6 @@ c.JSON(http.StatusOK, response.Response{
 }
 
 func Login(c *gin.Context)  {
-
 	formLogin := request.Login{}
 
 	e := c.ShouldBind(&formLogin)
@@ -136,6 +135,7 @@ func Login(c *gin.Context)  {
 			Message: base.FailedGenerateToken,
 			Data: nil,
 		})
+		return
 	}
 
 	c.JSON(http.StatusOK, response.Response{

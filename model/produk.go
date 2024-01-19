@@ -6,5 +6,6 @@ type Produk struct {
 	Harga      float64 `json:"harga"`
 	Stok       int     `json:"stok"`
 	Gambar     string  `json:"gambar" gorm:"type:text"`
+	LinkGambar string  `json:"link_gambar"`
 	BaseModel
 }

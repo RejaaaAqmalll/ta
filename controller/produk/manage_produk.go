@@ -106,12 +106,11 @@ func AddProduk(c *gin.Context) {
 		return
 	}
 
-	link := fmt.Sprintf("storage/%s", fileName)
-
+	
 	db := config.ConnectDatabase()
-
+	
 	isAdmin := dataJWT.Role == 1
-
+	
 	if !isAdmin {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
 	        Status:  http.StatusUnauthorized,
@@ -121,12 +120,16 @@ func AddProduk(c *gin.Context) {
 	    })
 	    return
 	}
+	
+	link := fmt.Sprintf("/storage/%s", fileName)
+	finalLink := "http://127.0.0.1:8080" + link
 
 	var produk  = model.Produk{
 	NamaProduk: formAddProduk.NamaProduk,
 	Harga:      formAddProduk.Harga,
 	Stok:       formAddProduk.Stok,
-	Gambar: 	link,	
+	Gambar: 	file.Filename,	
+	LinkGambar: finalLink,
 	}
 
 	err = db.Debug().Create(&produk).Error
@@ -143,16 +146,12 @@ func AddProduk(c *gin.Context) {
 	}
 
 	// fmt.Println(link)
-	finalLink := "http://127.0.0.1:8080/" + link
 	// fmt.Println(finalLink)
 	c.JSON(http.StatusOK, response.Response{
 		Status:  http.StatusOK,
 		Error:   nil,
 		Message: base.SuccessAddProduk,
-		Data:    gin.H{
-			"data_produk": produk,
-			"link":        finalLink,
-		},
+		Data:   produk,
 	})
 }
 

@@ -3,6 +3,7 @@ package helper
 import (
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -50,5 +51,6 @@ func SaveFile(src io.Reader, filename string) error {
 		return err
 	}
 
+	log.Printf("File saved successfully: %s\n", filename)
 	return nil
 }

@@ -35,6 +35,7 @@ func main() {
 		})
 	})
 
+	route.Static("/storage", "./storage")
 // ====================== ADMIN ======================================
 	admin := route.Group("/admin")
 	{
@@ -62,11 +63,13 @@ func main() {
 	{
 		petugas.Use(authmiddleware())
 
+		// Produk
+		petugas.GET("/list_produk", produk.ListProduk)
 
 
 
 
-		
+
 		petugas.POST("/add_penjualan",)
 	}
 

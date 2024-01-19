@@ -1,6 +1,7 @@
 package produk
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,7 +13,6 @@ import (
 	"ta-kasir/model/response"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func AddProduk(c *gin.Context) {
@@ -110,17 +110,16 @@ func AddProduk(c *gin.Context) {
 
 	db := config.ConnectDatabase()
 
-	err = db.Debug().Where("email = ?", dataJWT.Email).
-	Where("role = ?", 1).Where("hapus = ?", 0).First(&model.User{}).Error
+	isAdmin := dataJWT.Role == 1
 
-	if  err != nil && err == gorm.ErrRecordNotFound {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status:  http.StatusUnauthorized,
-			Error:   err,
-			Message: base.ShouldAdmin,
-			Data:    nil,
-		})
-		return
+	if !isAdmin {
+	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+	        Status:  http.StatusUnauthorized,
+	        Error:   errors.New(base.ShouldAdmin),
+	        Message: base.ShouldAdmin,
+	        Data:    nil,
+	    })
+	    return
 	}
 
 	var produk  = model.Produk{
@@ -262,17 +261,16 @@ func EditProduk(c *gin.Context)  {
 
 	db := config.ConnectDatabase()
 
-	err = db.Debug().Where("email = ?", dataJWT.Email).
-	Where("role = ?", 1).Where("hapus = ?", 0).First(&model.User{}).Error
+	isAdmin := dataJWT.Role == 1
 
-	if  err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status:  http.StatusUnauthorized,
-			Error:   err,
-			Message: base.ShouldAdmin,
-			Data:    nil,
-		})
-		return
+	if !isAdmin {
+	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+	        Status:  http.StatusUnauthorized,
+	        Error:   errors.New(base.ShouldAdmin),
+	        Message: base.ShouldAdmin,
+	        Data:    nil,
+	    })
+	    return
 	}
 
 	var produk  = model.Produk{
@@ -335,18 +333,16 @@ func DeleteProduk(c *gin.Context)  {
 	}
 
 	db := config.ConnectDatabase()
-	err = db.Where("email = ?", dataJWT.Email).
-	Where("role = ?", 1).Where("hapus = ?", 0).
-	First(&model.User{}).Error
+	isAdmin := dataJWT.Role == 1
 
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status: http.StatusUnauthorized,
-			Error: err,
-			Message: base.ShouldAdmin,
-			Data: nil,
-		})
-		return
+	if !isAdmin {
+	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+	        Status:  http.StatusUnauthorized,
+	        Error:   errors.New(base.ShouldAdmin),
+	        Message: base.ShouldAdmin,
+	        Data:    nil,
+	    })
+	    return
 	}
 
 	err = db.Debug().Model(model.Produk{}).
@@ -367,5 +363,114 @@ func DeleteProduk(c *gin.Context)  {
 		Error:  nil,
 		Message: base.SuccessDeleteProduk,
 		Data: nil,
+	})
+}
+
+func ListProduk(c *gin.Context)  {
+	dataJWT, err := helper.GetClaims(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status: http.StatusUnauthorized,
+			Error: err,
+			Message: base.NoUserLogin,
+			Data: nil,
+		})
+		return
+	}
+
+	db := config.ConnectDatabase()
+
+	key := c.Query("key")
+	if key != "" {
+		db = db.Where("nama_produk LIKE ?", "%"+key+"%")
+	}
+
+	// validasi admin terlebih dahulu
+	isAdmin := dataJWT.Role == 1
+
+	if !isAdmin {
+	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+	        Status:  http.StatusUnauthorized,
+	        Error:   errors.New(base.ShouldAdmin),
+	        Message: base.ShouldAdmin,
+	        Data:    nil,
+	    })
+	    return
+	}
+
+	var listProduk []model.Produk
+	err = db.Debug().
+	Where("hapus = ?", 0).Order("id_produk ASC").Find(&listProduk).Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status: http.StatusInternalServerError,
+			Error: err,
+			Message: err.Error(),
+			Data: nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{
+		Status: http.StatusOK,
+		Error:  nil,
+		Message: base.SuccessListProduk,
+		Data: listProduk,
+	})
+}
+
+func GetProdukById(c *gin.Context)  {
+	dataJWT, err := helper.GetClaims(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status: http.StatusUnauthorized,
+			Error: err,
+			Message: base.NoUserLogin,
+			Data: nil,
+		})
+		return
+	}
+
+	idProduk := c.Param("id")
+
+	db := config.ConnectDatabase()
+
+	// validasi admin terlebih dahulu
+	isAdmin := dataJWT.Role == 1
+
+	if !isAdmin {
+	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+	        Status:  http.StatusUnauthorized,
+	        Error:   errors.New(base.ShouldAdmin),
+	        Message: base.ShouldAdmin,
+	        Data:    nil,
+	    })
+	    return
+	}
+
+	var produk model.Produk
+
+	err = db.Debug().Where("id_produk = ?", idProduk).
+	Where("hapus = ?", 0).First(&produk).Error
+
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status: http.StatusInternalServerError,
+			Error: err,
+			Message: err.Error(),
+			Data: nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{
+		Status: http.StatusOK,
+		Error:  nil,
+		Message: base.SuccessGetProduk,
+		Data: produk,
 	})
 }

@@ -49,6 +49,8 @@ func main() {
 
 
 		// Produk
+		admin.GET("/list_produk", produk.ListProduk)
+		admin.GET("/get_produk/:id", produk.GetProdukById)
 		admin.POST("/add_produk", produk.AddProduk)
 		admin.PATCH("/edit_produk/:id", produk.EditProduk)
 		admin.DELETE("/delete_produk/:id", produk.DeleteProduk)
@@ -59,6 +61,12 @@ func main() {
 	petugas := route.Group("/petugas")
 	{
 		petugas.Use(authmiddleware())
+
+
+
+
+
+		
 		petugas.POST("/add_penjualan",)
 	}
 

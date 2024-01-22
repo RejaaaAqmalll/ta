@@ -64,9 +64,9 @@ func main() {
 		petugas.Use(authmiddleware())
 
 		// Produk
-		petugas.GET("/list_produk", produk.ListProduk)
-
-
+		petugas.GET("/list_produk", produk.ListProdukPetugas)
+		petugas.GET("/get_produk/:id", produk.GetProdukByIdPetugas)
+		petugas.POST("/add_produk", produk.AddProdukPetugas)
 
 
 

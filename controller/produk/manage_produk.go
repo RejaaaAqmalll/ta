@@ -434,6 +434,15 @@ func GetProdukById(c *gin.Context)  {
 	}
 
 	idProduk := c.Param("id")
+	if idProduk == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status: http.StatusBadRequest,
+			Error: nil,
+			Message: base.ParamEmpty,
+			Data: nil,
+		})
+		return
+	}
 
 	db := config.ConnectDatabase()
 

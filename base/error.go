@@ -15,4 +15,5 @@ const (
 	ParamEmpty          = "parameters cannot be empty"
 	FileNotSupported    = "file type not supported"
 	ShouldAdmin         = "user is not an admin"
+	ShouldPetugas       = "user is not an petugas"
 )

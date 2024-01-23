@@ -51,6 +51,20 @@ func AddProduk(c *gin.Context) {
 		return
 	}
 
+	// validasi role wajin 1 atau 2
+
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
+	
+	if !isAdmin {
+	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+	        Status:  http.StatusUnauthorized,
+	        Error:   errors.New(base.ShouldAdmin),
+	        Message: base.ShouldAdmin,
+	        Data:    nil,
+	    })
+	    return
+	}
+
 	// validasi input file harus berupa gambar
 	src, err := file.Open()
 	if err != nil{
@@ -64,7 +78,6 @@ func AddProduk(c *gin.Context) {
 		return
 	}
 
-	
 	buffer := make([]byte, 261)
 	_, err = src.Read(buffer)
 	
@@ -93,11 +106,13 @@ func AddProduk(c *gin.Context) {
 
 	fileName := helper.GenerateFilename(file.Filename)
 
-	err = helper.SaveFile(src, fileName)
+	fileDest := helper.GetImageSavePath(fileName)
+
+	err = c.SaveUploadedFile(file, fileDest)
 	if err != nil {
 		// log.Println(err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status:  http.StatusInternalServerError,
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
 			Error:   err,
 			Message: err.Error(),
 			Data:    nil,
@@ -105,20 +120,7 @@ func AddProduk(c *gin.Context) {
 		return
 	}
 
-	
 	db := config.ConnectDatabase()
-	
-	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
-	
-	if !isAdmin {
-	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-	        Status:  http.StatusUnauthorized,
-	        Error:   errors.New(base.ShouldAdmin),
-	        Message: base.ShouldAdmin,
-	        Data:    nil,
-	    })
-	    return
-	}
 	
 	link := fmt.Sprintf("/foto/%s", fileName)
 	finalLink := "http://127.0.0.1:8080" + link
@@ -200,6 +202,18 @@ func EditProduk(c *gin.Context)  {
 		return
 	}
 
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
+	
+	if !isAdmin {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+	        Error:   errors.New(base.ShouldAdmin),
+	        Message: base.ShouldAdmin,
+	        Data:    nil,
+	    })
+	    return
+	}
+
 	// validasi input file harus berupa gambar
 	src, err := file.Open()
 	if err != nil{
@@ -243,41 +257,34 @@ func EditProduk(c *gin.Context)  {
 
 	fileName := helper.GenerateFilename(file.Filename)
 
-	err = helper.SaveFile(src, fileName)
+	fileDest := helper.GetImageSavePath(fileName)
+
+
+	err = c.SaveUploadedFile(file, fileDest)
 	if err != nil {
 		// log.Println(err)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status:  http.StatusInternalServerError,
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
 			Error:   err,
 			Message: err.Error(),
 			Data:    nil,
 		})
 		return
 	}
-
-	link := fmt.Sprintf("storage/%s", fileName)
-
+	
 	db := config.ConnectDatabase()
 
-	isAdmin := dataJWT.Role == 1
-
-	if !isAdmin {
-	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-	        Status:  http.StatusUnauthorized,
-	        Error:   errors.New(base.ShouldAdmin),
-	        Message: base.ShouldAdmin,
-	        Data:    nil,
-	    })
-	    return
-	}
+	link := fmt.Sprintf("/foto/%s", fileName)
+	finalLink := "http://127.0.0.1:8080" + link
 
 	var produk  = model.Produk{
 		NamaProduk: formEditProduk.NamaProduk,
 		Harga: formEditProduk.Harga,
 		Stok: formEditProduk.Stok,
-		Gambar: link,
+		Gambar: file.Filename,
+		LinkGambar: finalLink,
 	}
-
+	
 	err = db.Debug().Model(model.Produk{}).
 	Where("id_produk = ?", idProduk).
 	Updates(&produk).Error
@@ -291,9 +298,8 @@ func EditProduk(c *gin.Context)  {
 			Data:    nil,
 		})
 		return
-	}
+	}	
 
-	finalLink := "http://127.0.0.1:8080/" + link
 	// fmt.Println(finalLink)
 	c.JSON(http.StatusOK, response.Response{
 		Status:  http.StatusOK,
@@ -331,7 +337,7 @@ func DeleteProduk(c *gin.Context)  {
 	}
 
 	db := config.ConnectDatabase()
-	isAdmin := dataJWT.Role == 1
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
@@ -385,7 +391,7 @@ func ListProduk(c *gin.Context)  {
 	}
 
 	// validasi admin terlebih dahulu
-	isAdmin := dataJWT.Role == 1
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
@@ -446,7 +452,7 @@ func GetProdukById(c *gin.Context)  {
 	db := config.ConnectDatabase()
 
 	// validasi admin terlebih dahulu
-	isAdmin := dataJWT.Role == 1
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{

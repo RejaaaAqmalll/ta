@@ -41,7 +41,7 @@ func AddWorker(c *gin.Context) {
 	}
 	db := config.ConnectDatabase()
 
-	isAdmin := dataJWT.Role == 1
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
@@ -69,7 +69,7 @@ func AddWorker(c *gin.Context) {
 		Username: addWorker.Username,
 		Email: addWorker.Email,
 		Password: string(hash),
-		Role: 2,
+		Role: 3,
 	}
 	err = db.Debug().Create(&worker).Error
 
@@ -130,7 +130,7 @@ func EditWorker(c *gin.Context)  {
 
 	db := config.ConnectDatabase()
 
-	isAdmin := dataJWT.Role == 1
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
@@ -193,7 +193,7 @@ func DeleteWorker(c *gin.Context) {
 
 	db := config.ConnectDatabase()
 
-	isAdmin := dataJWT.Role == 1
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
@@ -247,7 +247,7 @@ func ListWorker(c *gin.Context)  {
 
 	db = db.Order("iduser ASC")
 	
-	isAdmin := dataJWT.Role == 1
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
@@ -260,7 +260,7 @@ func ListWorker(c *gin.Context)  {
 	}
 
 	var workers []model.User
-	err = db.Debug().Where("role = ?", 2).Where("hapus = ?", 0).
+	err = db.Debug().Where("role = ?", 3).Where("hapus = ?", 0).
 	Find(&workers).Error
 
 	if err != nil {
@@ -298,7 +298,7 @@ func GetWorkerById(c *gin.Context)  {
 
 	db := config.ConnectDatabase()
 
-	isAdmin := dataJWT.Role == 1
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
@@ -313,7 +313,7 @@ func GetWorkerById(c *gin.Context)  {
 	var worker model.User
 
 	err = db.Debug().Where("iduser = ?", idWorker).
-	Where("role = ?", 2).
+	Where("role = ?", 3).
 	First(&worker).Error
 
 	if err != nil {

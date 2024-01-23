@@ -2,7 +2,6 @@ package helper
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"math/rand"
 	"os"
@@ -29,34 +28,16 @@ func GenerateFilename(originalFilename string) string {
 	return filename
 }
 
-func SaveFile(src io.Reader, filename string) error {
-	// Specify your storage directory
-	storageDir := "./storage/foto"
 
-	// Create the storage directory if it doesn't exist
-	if err := os.MkdirAll(storageDir, os.ModePerm); err != nil {
-		return err
-	}
+func GetImageSavePath(filename string) string  {
+	saveDir := "./storage/foto"
 
-	 // Check if the file already exists
-	 filePath := filepath.Join(storageDir, filename)
-	 if _, err := os.Stat(filePath); err == nil {
-		 return fmt.Errorf("file already exists: %s", filename)
-	 }
-
-	// Create the file on the storage directory
-    dst, err := os.Create(filePath)
+	err := os.MkdirAll(saveDir, 0755)
     if err != nil {
-        return fmt.Errorf("failed to create destination file: %v", err)
+		log.Fatal(err)
     }
-    defer dst.Close()
 
-	 // Copy the contents from src to dst
-	 _, err = io.Copy(dst, src)
-	 if err != nil {
-		 return fmt.Errorf("failed to copy contents to destination file: %v", err)
-	 }
+	savePath := filepath.Join(saveDir, filename)
 
-	log.Printf("File saved successfully: %s\n", filename)
-	return nil
+	return savePath
 }

@@ -61,7 +61,7 @@ if err != nil {
 user := model.User{
 	Username: formRegister.Username,
 	Email: formRegister.Email,
-	Role: 1,
+	Role: 2,
 	Password: string(hash),
 }
 err = db.Debug().Create(&user).Error

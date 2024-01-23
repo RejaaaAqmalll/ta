@@ -25,7 +25,7 @@ func ListProdukPetugas(c *gin.Context) {
 		return
 	}
 
-		isPetugas := dataJWT.Role == 2
+		isPetugas := dataJWT.Role == 3
 
 	if !isPetugas {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
@@ -80,7 +80,7 @@ func GetProdukByIdPetugas(c *gin.Context) {
 		return
 	}
 
-	isPetugas := dataJWt.Role == 2
+	isPetugas := dataJWt.Role == 3
 
 	if !isPetugas {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
@@ -141,7 +141,7 @@ func AddProdukPetugas(c *gin.Context)  {
 	}
 
 
-	isPetugas := dataJWT.Role == 2
+	isPetugas := dataJWT.Role == 3
 	if !isPetugas {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
 	        Status:  http.StatusUnauthorized,

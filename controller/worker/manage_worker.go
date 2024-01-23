@@ -18,7 +18,6 @@ func AddWorker(c *gin.Context) {
 	addWorker := request.AddWorker{}
 
 	err := c.ShouldBind(&addWorker)
-
 	if err != nil{
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Status: http.StatusBadRequest,
@@ -53,7 +52,7 @@ func AddWorker(c *gin.Context) {
 	    return
 	}
 
-	hash, err  := bcrypt.GenerateFromPassword([]byte(addWorker.Password), bcrypt.DefaultCost)
+	hash, err  := bcrypt.GenerateFromPassword([]byte(addWorker.Password), 10)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
@@ -68,9 +67,10 @@ func AddWorker(c *gin.Context) {
 	worker := model.User{
 		Username: addWorker.Username,
 		Email: addWorker.Email,
-		Password: string(hash),
 		Role: 3,
+		Password: string(hash),
 	}
+	
 	err = db.Debug().Create(&worker).Error
 
 	if err != nil {

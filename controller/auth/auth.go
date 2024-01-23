@@ -19,7 +19,6 @@ func Register(c *gin.Context) {
 
 	// Bind input
 	err := c.ShouldBind(&formRegister)
-
 	if err != nil {
 		c.JSON(http.StatusBadRequest, response.Response{
 			Status:  http.StatusBadRequest,
@@ -114,7 +113,7 @@ func Login(c *gin.Context)  {
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(c.PostForm("password")))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(formLogin.Password))
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{

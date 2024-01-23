@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"ta-kasir/base"
 	"ta-kasir/config"
 	"ta-kasir/helper"
@@ -13,9 +14,11 @@ import (
 	"ta-kasir/model/response"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func AddProduk(c *gin.Context) {
+	godotenv.Load()
 	dataJWT, err := helper.GetClaims(c)
 	
 	if err != nil {
@@ -123,7 +126,7 @@ func AddProduk(c *gin.Context) {
 	db := config.ConnectDatabase()
 	
 	link := fmt.Sprintf("/foto/%s", fileName)
-	finalLink := "http://127.0.0.1:8080" + link
+	finalLink := os.Getenv("BASE_URL") + link
 
 	var produk  = model.Produk{
 	NamaProduk: formAddProduk.NamaProduk,
@@ -157,6 +160,7 @@ func AddProduk(c *gin.Context) {
 }
 
 func EditProduk(c *gin.Context)  {
+	godotenv.Load()
 	dataJWT, err := helper.GetClaims(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
@@ -275,7 +279,7 @@ func EditProduk(c *gin.Context)  {
 	db := config.ConnectDatabase()
 
 	link := fmt.Sprintf("/foto/%s", fileName)
-	finalLink := "http://127.0.0.1:8080" + link
+	finalLink := os.Getenv("BASE_URL") + link
 
 	var produk  = model.Produk{
 		NamaProduk: formEditProduk.NamaProduk,

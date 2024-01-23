@@ -31,25 +31,31 @@ func GenerateFilename(originalFilename string) string {
 
 func SaveFile(src io.Reader, filename string) error {
 	// Specify your storage directory
-	storageDir := "./storage"
+	storageDir := "./storage/foto"
 
 	// Create the storage directory if it doesn't exist
 	if err := os.MkdirAll(storageDir, os.ModePerm); err != nil {
 		return err
 	}
 
-	// Create the file on the storage directory
-	dst, err := os.Create(filepath.Join(storageDir, filename))
-	if err != nil {
-		return err
-	}
-	defer dst.Close()
+	 // Check if the file already exists
+	 filePath := filepath.Join(storageDir, filename)
+	 if _, err := os.Stat(filePath); err == nil {
+		 return fmt.Errorf("file already exists: %s", filename)
+	 }
 
-	// Copy the contents from src to dst
-	_, err = io.Copy(dst, src)
-	if err != nil {
-		return err
-	}
+	// Create the file on the storage directory
+    dst, err := os.Create(filePath)
+    if err != nil {
+        return fmt.Errorf("failed to create destination file: %v", err)
+    }
+    defer dst.Close()
+
+	 // Copy the contents from src to dst
+	 _, err = io.Copy(dst, src)
+	 if err != nil {
+		 return fmt.Errorf("failed to copy contents to destination file: %v", err)
+	 }
 
 	log.Printf("File saved successfully: %s\n", filename)
 	return nil

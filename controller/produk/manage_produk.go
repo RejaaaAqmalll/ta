@@ -64,11 +64,10 @@ func AddProduk(c *gin.Context) {
 		return
 	}
 
-	defer src.Close()
-
+	
 	buffer := make([]byte, 261)
 	_, err = src.Read(buffer)
-
+	
 	if err != nil && err != io.EOF {
 		// log.Println(err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
@@ -109,7 +108,7 @@ func AddProduk(c *gin.Context) {
 	
 	db := config.ConnectDatabase()
 	
-	isAdmin := dataJWT.Role == 1
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 	
 	if !isAdmin {
 	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
@@ -121,7 +120,7 @@ func AddProduk(c *gin.Context) {
 	    return
 	}
 	
-	link := fmt.Sprintf("/storage/%s", fileName)
+	link := fmt.Sprintf("/foto/%s", fileName)
 	finalLink := "http://127.0.0.1:8080" + link
 
 	var produk  = model.Produk{

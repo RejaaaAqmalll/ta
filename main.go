@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"os"
 	"ta-kasir/config"
 	"ta-kasir/controller/auth"
 	"ta-kasir/controller/produk"
@@ -26,6 +27,7 @@ func main() {
 	})
 
 	authmiddleware := middleware.AuthCheck
+	route.StaticFS("/foto", gin.Dir("./storage/foto", false))
 	route.POST("/register", auth.Register)
 	route.POST("/login", auth.Login)
 
@@ -35,7 +37,13 @@ func main() {
 		})
 	})
 
-	route.Static("/storage", "./storage")
+	
+
+	err := os.Chmod("./storage/foto", 0755)
+
+	if err != nil {
+		panic(err)
+	}
 // ====================== ADMIN ======================================
 	admin := route.Group("/admin")
 	{

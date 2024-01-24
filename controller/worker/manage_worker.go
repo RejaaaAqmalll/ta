@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func AddWorker(c *gin.Context) {
@@ -70,18 +71,14 @@ func AddWorker(c *gin.Context) {
 		Role: 3,
 		Password: string(hash),
 	}
-	
-	err = db.Debug().Create(&worker).Error
 
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status: http.StatusInternalServerError,
-			Error: err,
-			Message: err.Error(),
-			Data: nil,
-		})
-		return
-	}
+	db.Transaction(func(tx *gorm.DB) error {	
+		err = tx.Debug().Create(&worker).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 
 	c.JSON(http.StatusOK, response.Response{
 	Status: http.StatusOK,
@@ -148,7 +145,8 @@ func EditWorker(c *gin.Context)  {
 	}
 
 	err = db.Debug().Where("iduser = ?", idWorker).
-	Updates(&worker).Where("role = ?", 2).Where("hapus = ?", 0).Error
+	Where("role = ?", 3).Where("hapus = ?", 0).
+	Updates(&worker).Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{

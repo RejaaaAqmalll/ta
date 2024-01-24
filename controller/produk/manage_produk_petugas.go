@@ -158,7 +158,7 @@ func AddProdukPetugas(c *gin.Context)  {
 	    return
 	}
 
-	formEditProduk := request.EditProduk{}
+	formAddProduk := request.AddProduk{}
 
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -171,7 +171,7 @@ func AddProdukPetugas(c *gin.Context)  {
 		return
 	}
 
-	err = c.ShouldBind(&formEditProduk)
+	err = c.ShouldBind(&formAddProduk)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Status: http.StatusBadRequest,
@@ -243,9 +243,9 @@ func AddProdukPetugas(c *gin.Context)  {
 	finalLink := os.Getenv("BASE_URL") + link
 
 	var produk  = model.Produk{
-		NamaProduk: formEditProduk.NamaProduk,
-		Harga:      formEditProduk.Harga,
-		Stok:       formEditProduk.Stok,
+		NamaProduk: formAddProduk.NamaProduk,
+		Harga:      formAddProduk.Harga,
+		Stok:       formAddProduk.Stok,
 		Gambar:     file.Filename,
 		LinkGambar: finalLink,
 	}

@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"os"
 	"ta-kasir/config"
 	"ta-kasir/controller/auth"
 	"ta-kasir/controller/produk"
@@ -39,11 +38,11 @@ func main() {
 
 	
 
-	err := os.Chmod("./storage/foto", 0755)
+	// err := os.Chmod("./storage/foto", 0755)
 
-	if err != nil {
-		panic(err)
-	}
+	// if err != nil {
+	// 	panic(err)
+	// }
 // ====================== ADMIN ======================================
 	admin := route.Group("/admin")
 	{

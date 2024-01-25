@@ -74,6 +74,8 @@ func main() {
 		petugas.GET("/list_produk", produk.ListProdukPetugas)
 		petugas.GET("/get_produk/:id", produk.GetProdukByIdPetugas)
 		petugas.POST("/add_produk", produk.AddProdukPetugas)
+		petugas.PATCH("/edit_produk/:id", produk.EditProdukPetugas)
+		petugas.DELETE("/delete_produk/:id", produk.DeleteProdukPetugas)
 
 
 

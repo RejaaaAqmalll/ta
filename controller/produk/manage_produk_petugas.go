@@ -269,3 +269,223 @@ func AddProdukPetugas(c *gin.Context)  {
 		Data:   produk,
 	})
 }
+
+func EditProdukPetugas(c *gin.Context)  {
+	godotenv.Load()
+	dataJWT, err := helper.GetClaims(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status: http.StatusUnauthorized,
+			Error: err,
+			Message: base.NoUserLogin,
+			Data: nil,
+		})
+		return
+	}
+
+	// validasi akses hanya untuk petugas
+	isPetugas := dataJWT.Role == 3
+	
+	if !isPetugas {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+	        Error:   errors.New(base.ShouldPetugas),
+	        Message: base.ShouldPetugas,
+	        Data:    nil,
+	    })
+	    return
+	}
+
+	// parameter id untuk kondisi pengeditan data
+	idProduk := c.Param("id")
+	if idProduk == ""  {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status: http.StatusBadRequest,
+			Error: err,
+			Message: base.ParamEmpty,
+			Data: nil,
+		})
+		return
+	}
+
+	// Binding form dengan dengan id dan name "file"
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+
+	// request body dan Binding
+	formEdit := request.EditProduk{}
+	err = c.ShouldBind(&formEdit)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
+			Error:   err,
+			Message: base.EmpetyField,
+			Data:    nil,
+		})
+		return
+	}
+
+	// validasi input file harus berupa gambar
+	src, err := file.Open()
+	if err != nil{
+		// log.Println(err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+
+	defer src.Close()
+
+	buffer := make([]byte, 261)
+	_, err = src.Read(buffer)
+
+	if err != nil && err != io.EOF {
+		// log.Println(err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+	
+	// get mime type
+	kind := http.DetectContentType(buffer)
+	if kind == "" || !helper.IsSupportedImageFormat(kind) {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
+			Error:   err,
+			Message: base.FileNotSupported,
+			Data:    nil,
+		})
+		return
+	}
+
+	fileName := helper.GenerateFilename(file.Filename)
+
+	fileDest := helper.GetImageSavePath(fileName)
+
+
+	err = c.SaveUploadedFile(file, fileDest)
+	if err != nil {
+		// log.Println(err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+	
+	db := config.ConnectDatabase()
+
+	link := fmt.Sprintf("/foto/%s", fileName)
+	finalLink := os.Getenv("BASE_URL") + link
+
+	var produk  = model.Produk{
+		NamaProduk: formEdit.NamaProduk,
+		Harga:      formEdit.Harga,
+		Stok:       formEdit.Stok,
+		Gambar:     file.Filename,
+		LinkGambar: finalLink,
+	}
+
+	err = db.Debug().Model(model.Produk{}).
+	Where("id_produk = ?", idProduk).
+	Updates(&produk).Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status:  http.StatusInternalServerError,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{
+		Status: http.StatusOK,
+		Error: nil,
+		Message: base.SuccessEditPorduk,
+		Data: gin.H{
+			"data_produk": produk,
+			"link": finalLink,
+		},
+	})
+}
+
+func DeleteProdukPetugas(c *gin.Context)  {
+	dataJWT, err := helper.GetClaims(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status: http.StatusUnauthorized,
+			Error:  err,
+			Message: base.NoUserLogin,
+			Data: nil,
+		})
+		return
+	}
+
+	isPetugas := dataJWT.Role == 3
+
+	if !isPetugas {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status: http.StatusBadRequest,
+			Error:  err,
+			Message: base.ShouldPetugas,
+			Data: nil,
+		})
+		return
+	}
+
+	idProduk := c.Param("id")
+	if idProduk == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status: http.StatusBadRequest,
+			Error:  err,
+			Message: base.ParamEmpty,
+			Data: nil,
+		})
+		return
+	}
+
+	db := config.ConnectDatabase()
+
+	err = db.Debug().Model(model.Produk{}).
+	Where("id_produk = ?", idProduk).Update("hapus", 1).Error
+
+	if err != nil {
+	c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+		Status: http.StatusInternalServerError,
+		Error:  err,
+		Message: err.Error(),
+		Data: nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{
+		Status: http.StatusOK,
+		Error:  nil,
+		Message: base.SuccessDeleteProduk,
+		Data: nil,
+	})
+}

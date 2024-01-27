@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"ta-kasir/config"
 	"ta-kasir/controller/auth"
+	"ta-kasir/controller/penjualan"
 	"ta-kasir/controller/produk"
 	"ta-kasir/controller/worker"
 	"ta-kasir/middleware"
@@ -79,7 +80,7 @@ func main() {
 
 
 
-		petugas.POST("/add_penjualan",)
+		petugas.POST("/add_penjualan", penjualan.AddPenjualan)
 	}
 
 

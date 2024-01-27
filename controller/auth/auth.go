@@ -36,7 +36,7 @@ Where("email = ?", formRegister.Email).Where("hapus = ?", 0).
 First(&model.User{}).Error
 
 if err != gorm.ErrRecordNotFound {
-	c.JSON(http.StatusBadRequest, response.Response{
+	c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 		Status: http.StatusBadRequest,
 		Error: err,
 		Message: base.AlreadyRegister,

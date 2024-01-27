@@ -16,4 +16,5 @@ const (
 	FileNotSupported    = "file type not supported"
 	ShouldAdmin         = "user is not an admin"
 	ShouldPetugas       = "user is not an petugas"
+	OutOfStock          = "out of stock"
 )

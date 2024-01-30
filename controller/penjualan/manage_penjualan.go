@@ -138,8 +138,8 @@ func AddPenjualan(c *gin.Context) {
 		} else {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 				Status:  http.StatusInternalServerError,
-				Error:   errors.New("Invalid ID"),
-				Message: "Invalid ID",
+				Error:   errors.New(base.InvalidID),
+				Message: base.InvalidID,
 				Data:    nil,
 			})
 			return

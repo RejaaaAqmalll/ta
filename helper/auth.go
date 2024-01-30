@@ -3,6 +3,7 @@ package helper
 import (
 	"errors"
 	"os"
+	"ta-kasir/base"
 	"ta-kasir/model"
 	"ta-kasir/model/request"
 	"time"
@@ -20,7 +21,7 @@ func GenerateToken(data model.User) (string, error) {
 	secret := []byte(os.Getenv("SECRET"))
 	// fmt.Println(string(secret))
 	if len(secret) == 0 {
-		return "", errors.New("JWT_SECRET is empty")
+		return "", errors.New(base.JWTSecretEmpety)
 	}
 	issuedAt := time.Now().Unix()
 

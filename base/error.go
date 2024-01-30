@@ -17,4 +17,6 @@ const (
 	ShouldAdmin         = "user is not an admin"
 	ShouldPetugas       = "user is not an petugas"
 	OutOfStock          = "out of stock"
+	InvalidID           = "invalid id"
+	JWTSecretEmpety     = "jwt secret is empty"
 )

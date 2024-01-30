@@ -79,11 +79,10 @@ func AddPenjualan(c *gin.Context) {
 	}
 
 	var pelanggan model.Pelanggan
-	var lastID string
 	db := config.ConnectDatabase()
 	var produk []model.Produk
 	// validasi stok barang
-
+	
 	for _, each := range formAddPelanggan.DataPesanan {
 		err = db.Debug().Where("id_produk = ?", each.IdProduk).Find(&produk).Error
 		if err != nil {
@@ -95,9 +94,9 @@ func AddPenjualan(c *gin.Context) {
 			})
 			return
 		}
-
+		
 		fmt.Println(produk)
-
+		
 		for _, eachProduk := range produk {
 			if each.JumlahProduk > eachProduk.Stok {
 				c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
@@ -113,32 +112,43 @@ func AddPenjualan(c *gin.Context) {
 	}
 	
 	// mengambil id terakhir pelanggan
-	err = db.Last(&pelanggan).Error
-
-	if err == gorm.ErrRecordNotFound {
-		if pelanggan.IdPelanggan == "" {
-			lastID = "PLG000"
+	db.Last(&pelanggan)
+	var lastID string
+	var idPelanggan string
+	if pelanggan.IdPelanggan == "" {
+		lastID = "PLG000"
 		} else {
 			lastID = pelanggan.IdPelanggan
 		}
-	}
+		
+
+		if len(lastID) >= 3 {
+			lastNum, err := strconv.Atoi(lastID[3:])
+		if err !=  nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+				Status:  http.StatusInternalServerError,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return
+		}
+			newNum := lastNum + 1
+			idPelanggan = fmt.Sprintf("PLG%03d", newNum)
+		} else {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+				Status:  http.StatusInternalServerError,
+				Error:   errors.New("Invalid ID"),
+				Message: "Invalid ID",
+				Data:    nil,
+			})
+			return
+		}
 
 
-	lastNum, err := strconv.Atoi(lastID[3:])
-	if err !=  nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status:  http.StatusInternalServerError,
-			Error:   err,
-			Message: err.Error(),
-			Data:    nil,
-		})
-		return
-	}
 
 
-	newNum := lastNum + 1
-
-	idPelanggan := fmt.Sprintf("PLG%03d", newNum)
+	// idPelanggan := fmt.Sprintf("PLG%03d", newNum)
 	formatTime := time.Now().Format("060102")
 	codeLength := 4
 	var modalcode = "1234567890"
@@ -150,7 +160,8 @@ func AddPenjualan(c *gin.Context) {
 	}
 	lastNumber := string(code)
 	idPenjualan :=  fmt.Sprintf("TRS%s", formatTime+lastNumber)
-
+	
+	// Transaction Begin
 	db.Transaction(func(tx *gorm.DB) error {
 		// Insert tabel pelanggan
 		err = tx.Debug().Create(&model.Pelanggan{
@@ -255,11 +266,12 @@ func AddPenjualan(c *gin.Context) {
 		// akhir transaction
 	})
 
-	// c.JSON(http.StatusOK, response.Response{
-	// 	Status:  http.StatusOK,
-	// 	Error:   nil,
-	// 	Message: "success",
-	// })
+	c.JSON(http.StatusOK, response.Response{
+		Status:  http.StatusOK,
+		Error:   nil,
+		Message: "success",
+		Data: formAddPelanggan,
+	})
 	
 	
 }

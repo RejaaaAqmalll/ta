@@ -219,7 +219,7 @@ func AddPenjualan(c *gin.Context) {
 			PenjualanIdPenjualan: idPenjualan,
 			Amount: formAddPelanggan.Pembayaran.Amount,
 			BiayaAdmin: formAddPelanggan.Pembayaran.BiayaAdmin,
-			GrandTotal: formAddPelanggan.Pembayaran.Grandtotal,
+			Grandtotal: formAddPelanggan.Pembayaran.Grandtotal,
 		}).Error
 
 		if err != nil {

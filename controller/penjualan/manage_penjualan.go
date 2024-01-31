@@ -10,6 +10,7 @@ import (
 	"ta-kasir/config"
 	"ta-kasir/helper"
 	"ta-kasir/model"
+	"ta-kasir/model/request"
 	"ta-kasir/model/response"
 	"time"
 
@@ -17,28 +18,6 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
-
-type Transaksi struct {
-	Email string `json:"email" form:"email" binding:"email"`
-	Nama string `json:"nama" form:"nama" binding:"required"`
-	NoTelp string `json:"no_telp" form:"no_telp" binding:"required"`
-	Alamat string `json:"alamat" form:"alamat" binding:"required"`
-	DataPesanan []Pesanan `json:"data_pesanan" form:"data_pesanan" binding:"required"`
-	Pembayaran Bayar `json:"pembayaran" form:"pembayaran" binding:"required"`
-}
-
-type Pesanan struct {
-	IdProduk int `json:"id_produk" form:"id_produk" binding:"required"`
-	JumlahProduk int `json:"jumlah_produk" form:"jumlah_produk" binding:"required"`
-	SubTotal float64 `json:"sub_total" form:"sub_total" binding:"required"`
-}
-
-type Bayar struct {
-	Amount float64 `json:"amount" form:"amount" binding:"required"`
-	BiayaAdmin float64 `json:"biaya_admin" form:"biaya_admin" binding:"required"`
-	Grandtotal float64 `json:"grandtotal" form:"grandtotal" binding:"required"`
-}
-
 
 func AddPenjualan(c *gin.Context) {
 	dataJWT, err := helper.GetClaims(c)
@@ -65,7 +44,7 @@ func AddPenjualan(c *gin.Context) {
 		return
 	}
 
-	formAddPelanggan := Transaksi{}
+	formAddPelanggan := request.Transaksi{}
 
 	err = c.ShouldBind(&formAddPelanggan)
 	if err != nil {
@@ -94,9 +73,7 @@ func AddPenjualan(c *gin.Context) {
 			})
 			return
 		}
-		
-		fmt.Println(produk)
-		
+				
 		for _, eachProduk := range produk {
 			if each.JumlahProduk > eachProduk.Stok {
 				c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
@@ -274,4 +251,58 @@ func AddPenjualan(c *gin.Context) {
 	})
 	
 	
+}
+
+func ListTransaksi(c *gin.Context) {
+	dataJWT, err := helper.GetClaims(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status: http.StatusUnauthorized,
+			Error:  err,
+			Message: base.NoUserLogin,
+			Data:   nil,
+		})
+		return
+	}
+
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
+
+	if !isAdmin {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldAdmin),
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
+	}
+
+	db := config.ConnectDatabase()
+
+	key := c.Query("key")
+	if key != "" {
+		db = db.Where("id_penjualan LIKE ?", "%"+key+"%")
+	}
+
+	var transaksi []model.Penjualan
+	err = db.Debug().Where("hapus = ?", 0).Order("created_at DESC").Preload("DetailPenjualan").
+	Find(&transaksi).Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status: http.StatusInternalServerError,
+			Error:  err,
+			Message: err.Error(),
+			Data:   nil,
+		})
+		return
+	}
+
+	c.JSONP(http.StatusOK, response.Response{
+		Status: http.StatusOK,
+		Error:  nil,
+		Message: base.SuccessListTransaksi,
+		Data:   transaksi,
+	})
 }

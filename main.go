@@ -62,6 +62,7 @@ func main() {
 
 		// Customer
 		admin.GET("/list_customer", customer.ListCustomer)
+		admin.DELETE("/delete_customer/:id", customer.DeleteCustomer)
 	}
 
 // ====================== PETUGAS ======================================

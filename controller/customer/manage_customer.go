@@ -66,3 +66,63 @@ func ListCustomer(c *gin.Context) {
 		Data:   listCustomer,
 	})
 }
+
+func DeleteCustomer(c *gin.Context) {
+	dataJWT, err := helper.GetClaims(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status: http.StatusUnauthorized,
+			Error:  err,
+			Message: base.NoUserLogin,
+			Data:   nil,
+		})
+		return
+	}
+
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
+
+	if !isAdmin {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldAdmin),
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
+	}
+
+	idCustomer := c.Param("id")
+
+	if idCustomer == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status: http.StatusBadRequest,
+			Error:  nil,
+			Message: base.ParamEmpty,
+			Data:   nil,
+		})
+		return
+	}
+
+	db := config.ConnectDatabase()
+
+	err = db.Model(&model.Pelanggan{}).
+	Where("id_pelanggan = ?", idCustomer).Update("hapus", 1).Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status: http.StatusInternalServerError,
+			Error:  err,
+			Message: err.Error(),
+			Data:   nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{
+		Status: http.StatusOK,
+		Error:  nil,
+		Message: base.SuccessDeleteCustomer,
+		Data:   nil,
+	})
+}

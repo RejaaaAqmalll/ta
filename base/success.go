@@ -13,4 +13,5 @@ const (
 	SuccessGetWorker    = "get worker success"
 	SuccessListProduk   = "get list produk success"
 	SuccessGetProduk    = "get produk success"
+	SuccessListCustomer = "get list customer success"
 )

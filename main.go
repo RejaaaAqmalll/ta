@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"ta-kasir/config"
 	"ta-kasir/controller/auth"
+	"ta-kasir/controller/customer"
 	"ta-kasir/controller/penjualan"
 	"ta-kasir/controller/produk"
 	"ta-kasir/controller/worker"
@@ -38,12 +39,6 @@ func main() {
 	})
 
 	
-
-	// err := os.Chmod("./storage/foto", 0755)
-
-	// if err != nil {
-	// 	panic(err)
-	// }
 // ====================== ADMIN ======================================
 	admin := route.Group("/admin")
 	{
@@ -63,6 +58,10 @@ func main() {
 		admin.POST("/add_produk", produk.AddProduk)
 		admin.PATCH("/edit_produk/:id", produk.EditProduk)
 		admin.DELETE("/delete_produk/:id", produk.DeleteProduk)
+
+
+		// Customer
+		admin.GET("/list_customer", customer.ListCustomer)
 	}
 
 // ====================== PETUGAS ======================================

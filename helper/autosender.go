@@ -9,11 +9,6 @@ import (
 	"gopkg.in/mail.v2"
 )
 
-// const CONFIG_SMTP_HOST = "smtp.gmail.com"
-// const CONFIG_SMTP_PORT = 587
-// const CONFIG_SENDER_NAME = "Admin Aplikasi Simple Cash <asimplecash@gmail.com>"
-// const CONFIG_AUTH_EMAIL = "asimplecash@gmail.com"
-// const CONFIG_AUTH_PASSWORD = "pknwzrbbhsqfkyhc"
 
 type OptGetEmail struct {
 	NamaPenerima	string
@@ -45,6 +40,7 @@ func SendEmail(email string) error  {
 	if err := dialer.DialAndSend(mailer); err != nil {
 		return err
 	}
+	
 	return nil
 }
 

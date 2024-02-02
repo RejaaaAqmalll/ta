@@ -265,7 +265,6 @@ func ListTransaksi(c *gin.Context) {
 		})
 		return
 	}
-
 	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {

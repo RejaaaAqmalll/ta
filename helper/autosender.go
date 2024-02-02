@@ -2,14 +2,55 @@ package helper
 
 import (
 	"fmt"
+	"os"
 	"time"
+
+	"github.com/joho/godotenv"
+	"gopkg.in/mail.v2"
 )
 
-const CONFIG_SMTP_HOST = "smtp.gmail.com"
-const CONFIG_SMTP_PORT = 587
-const CONFIG_SENDER_NAME = "Admin Aplikasi Simple Cash <asimplecash@gmail.com>"
-const CONFIG_AUTH_EMAIL = "asimplecash@gmail.com"
-const CONFIG_AUTH_PASSWORD = "adminsimplecash2024"
+// const CONFIG_SMTP_HOST = "smtp.gmail.com"
+// const CONFIG_SMTP_PORT = 587
+// const CONFIG_SENDER_NAME = "Admin Aplikasi Simple Cash <asimplecash@gmail.com>"
+// const CONFIG_AUTH_EMAIL = "asimplecash@gmail.com"
+// const CONFIG_AUTH_PASSWORD = "pknwzrbbhsqfkyhc"
+
+type OptGetEmail struct {
+	NamaPenerima	string
+	NamaKasir 		string
+	TotalHarga 		float64
+}
+
+func SendEmail(email string) error  {
+	godotenv.Load()
+
+	mailer := mail.NewMessage()
+	mailer.SetHeader("From", os.Getenv("SENDER_NAME"))
+	mailer.SetHeader("To", email)
+	mailer.SetHeader("Subject", "      This is your transaction receipt      ")
+	body := "Please read and check your receipt"
+	mailer.SetBody("text/plain", body)
+
+	// path get image receipt
+	attachmentPath := "path/to/your/receipt/image.jpg"
+	mailer.Attach(attachmentPath)
+
+	host := os.Getenv("SMTP_HOST")
+	port := 587
+	authEmail := os.Getenv("AUTH_EMAIL")
+	authPass := os.Getenv("AUTH_PASSWORD")
+
+	dialer := mail.NewDialer(host, port, authEmail, authPass)
+
+	if err := dialer.DialAndSend(mailer); err != nil {
+		return err
+	}
+	return nil
+}
+
+
+
+
 
 
 // contoh template WA/Email

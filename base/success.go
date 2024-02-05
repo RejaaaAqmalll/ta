@@ -16,4 +16,5 @@ const (
 	SuccessListCustomer   = "get list customer success"
 	SuccessDeleteCustomer = "delete customer success"
 	SuccessListTransaksi  = "get list transaksi success"
+	SuccesTransaction     = "successful transaction"
 )

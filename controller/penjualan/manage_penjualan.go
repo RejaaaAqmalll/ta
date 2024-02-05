@@ -243,14 +243,49 @@ func AddPenjualan(c *gin.Context) {
 		// akhir transaction
 	})
 
+	// Go Func untuk generate image dan send to email
+	go func() {
+
+		var produkID []int
+		var subTotals []float64
+
+		for _, pesanan := range formAddPelanggan.DataPesanan {
+			produkID = append(produkID, pesanan.IdProduk)
+			subTotals = append(subTotals, pesanan.SubTotal)
+		}
+
+
+		imagePath, err := helper.GenerateImage(300, 400, idPenjualan, dataJWT.Nama, produkID, formAddPelanggan.DataPesanan, subTotals, formAddPelanggan.Pembayaran)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+				Status:  http.StatusInternalServerError,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return
+		}
+
+		err = helper.SendEmail(formAddPelanggan.Email, imagePath)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+				Status:  http.StatusInternalServerError,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return
+		}
+	}()
+
 	c.JSON(http.StatusOK, response.Response{
 		Status:  http.StatusOK,
 		Error:   nil,
-		Message: "success",
+		Message: base.SuccesTransaction,
 		Data: formAddPelanggan,
 	})
-	
-	
 }
 
 func ListTransaksi(c *gin.Context) {

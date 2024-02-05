@@ -2,6 +2,7 @@ package helper
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -16,7 +17,7 @@ type OptGetEmail struct {
 	TotalHarga 		float64
 }
 
-func SendEmail(email string) error  {
+func SendEmail(email, imagePath string) error  {
 	godotenv.Load()
 
 	mailer := mail.NewMessage()
@@ -25,10 +26,8 @@ func SendEmail(email string) error  {
 	mailer.SetHeader("Subject", "      This is your transaction receipt      ")
 	body := "Please read and check your receipt"
 	mailer.SetBody("text/plain", body)
-
 	// path get image receipt
-	attachmentPath := "path/to/your/receipt/image.jpg"
-	mailer.Attach(attachmentPath)
+	mailer.Attach(imagePath)
 
 	host := os.Getenv("SMTP_HOST")
 	port := 587
@@ -38,6 +37,7 @@ func SendEmail(email string) error  {
 	dialer := mail.NewDialer(host, port, authEmail, authPass)
 
 	if err := dialer.DialAndSend(mailer); err != nil {
+		log.Fatal(err)
 		return err
 	}
 	

@@ -105,7 +105,7 @@ func GenerateImage(width, height int, idPenjualan, namaKasir string, productsID 
 
 		if i == len(productsName)-1 {
 			// Gambar garis pembatas terakhir
-			dc.DrawLine(20, y+lineHeight, float64(width)-20, y+lineHeight)
+			dc.DrawLine(160, y+lineHeight, float64(width)-20, y+lineHeight)
 			dc.Stroke()
 		
 			// Tampilkan "Subtotal" dan jumlahnya setelah garis pembatas terakhir
@@ -123,7 +123,7 @@ func GenerateImage(width, height int, idPenjualan, namaKasir string, productsID 
 			dc.DrawString(fmt.Sprintf("Rp. %.0f", pembayaran.BiayaAdmin), Subtotal, y+lineHeight+40)
 		
 			// Gambar garis pembatas
-			dc.DrawLine(20, y+lineHeight+60, float64(width)-20, y+lineHeight+60)
+			dc.DrawLine(160, y+lineHeight+60, float64(width)-20, y+lineHeight+60)
 			dc.Stroke()
 		
 			// Tampilkan "Total" dan jumlahnya setelah garis pembatas terakhir
@@ -135,14 +135,6 @@ func GenerateImage(width, height int, idPenjualan, namaKasir string, productsID 
 		}
 		
     }
-
-	// // GARIS PEMISAH 3
-	// err = dc.LoadFontFace("./storage/fonts/Poppins-Regular.ttf", 10)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// dc.DrawString("-----------------------------------------------", 20, 190)
 
 	receiptPath := fmt.Sprintf("./storage/receipt/Receipt Simple Cash (%s).png", idPenjualan) 
 	err = dc.SavePNG(receiptPath)

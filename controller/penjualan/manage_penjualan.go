@@ -244,7 +244,7 @@ func AddPenjualan(c *gin.Context) {
 	})
 
 	// Go Func untuk generate image dan send to email
-	go func() {
+	// go func() {
 
 		var produkID []int
 		var subTotals []float64
@@ -278,7 +278,8 @@ func AddPenjualan(c *gin.Context) {
 			})
 			return
 		}
-	}()
+
+	// }()
 
 	c.JSON(http.StatusOK, response.Response{
 		Status:  http.StatusOK,

@@ -285,7 +285,12 @@ func AddPenjualan(c *gin.Context) {
 		Status:  http.StatusOK,
 		Error:   nil,
 		Message: base.SuccesTransaction,
-		Data: formAddPelanggan,
+		Data: gin.H{
+			"id_transaksi": idPenjualan,
+			"nama_kasir": dataJWT.Nama,
+			"tanggal_transaksi": time.Now().Format("02.01.2006"),
+			"data_pesanan": formAddPelanggan.DataPesanan,
+		},
 	})
 }
 

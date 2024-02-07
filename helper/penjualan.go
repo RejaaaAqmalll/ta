@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/fogleman/gg"
+	"github.com/jung-kurt/gofpdf"
 )
 
 func GenerateRandomNumber(length int) string {
@@ -132,6 +133,10 @@ func GenerateImage(width, height int, idPenjualan, namaKasir string, productsID 
 		
 			// Tampilkan jumlah total
 			dc.DrawString(fmt.Sprintf("Rp. %.0f", pembayaran.Grandtotal), Subtotal, y+lineHeight+80)
+
+			// Tampilkan ucapan terima kasih
+			dc.LoadFontFace("./storage/fonts/Poppins-Regular.ttf", 10)
+			dc.DrawString("Thank you for shopping at Simple Cash", 60, y+lineHeight+150)
 		}
 		
     }
@@ -145,3 +150,62 @@ func GenerateImage(width, height int, idPenjualan, namaKasir string, productsID 
 
 	return receiptPath, nil
 }
+
+func GeneratePDF(idPenjualan, namaKasir string, productsID []int, dataPesanan []request.Pesanan, subTotals []float64, pembayaran request.Bayar) (string, error) {
+    pdf := gofpdf.New("P", "mm", "A4", "") // Buat objek PDF baru dengan ukuran A4
+    pdf.AddPage() // Tambahkan halaman pertama
+
+    // Font dan ukuran teks
+    pdf.SetFont("Arial", "", 12)
+
+    // Header
+    pdf.CellFormat(190, 10, "Simple Cash", "", 0, "C", false, 0, "")
+    pdf.Ln(5)
+    pdf.CellFormat(190, 10, "Jl Tanimbar No.22 Malang", "", 0, "C", false, 0, "")
+    pdf.Ln(10)
+
+    // Data pesanan
+    var productsName []string
+    db := config.ConnectDatabase()
+    err := db.Debug().Model(&model.Produk{}).Where("id_produk IN (?)", productsID).Pluck("nama_produk", &productsName).Error
+    if err != nil {
+        log.Printf("Error fetching product names: %v", err)
+        return "", err
+    }
+
+    for i, pesanan := range dataPesanan {
+        // Tampilkan nama produk
+        pdf.CellFormat(100, 10, fmt.Sprintf("%s", productsName[i]), "", 0, "", false, 0, "")
+
+        // Tampilkan jumlah produk
+        pdf.CellFormat(30, 10, fmt.Sprintf("x%d", pesanan.JumlahProduk), "", 0, "", false, 0, "")
+
+        // Tampilkan subtotal
+        pdf.CellFormat(30, 10, fmt.Sprintf("Rp. %.0f", subTotals[i]), "", 1, "R", false, 0, "")
+    }
+
+    // Total, Admin Fees, dan Grandtotal
+    pdf.Ln(10)
+    pdf.CellFormat(160, 10, "Total", "", 0, "", false, 0, "")
+    pdf.CellFormat(30, 10, fmt.Sprintf("Rp. %.0f", pembayaran.Grandtotal), "", 1, "R", false, 0, "")
+    pdf.CellFormat(160, 10, "Admin Fees", "", 0, "", false, 0, "")
+    pdf.CellFormat(30, 10, fmt.Sprintf("Rp. %.0f", pembayaran.BiayaAdmin), "", 1, "R", false, 0, "")
+    pdf.CellFormat(160, 10, "Subtotal", "", 0, "", false, 0, "")
+    pdf.CellFormat(30, 10, fmt.Sprintf("Rp. %.0f", pembayaran.Amount), "", 1, "R", false, 0, "")
+
+    // Ucapan terima kasih
+    pdf.Ln(10)
+    pdf.CellFormat(190, 10, "Thank you for shopping at Simple Cash", "", 0, "C", false, 0, "")
+
+    receiptPath := fmt.Sprintf("./storage/receipt/Receipt Simple Cash (%s).pdf", idPenjualan)
+    err = pdf.OutputFileAndClose(receiptPath)
+    if err != nil {
+        log.Printf("Error saving PDF: %v", err)
+        return "", err
+    }
+
+    return receiptPath, nil
+}
+
+
+

@@ -254,8 +254,11 @@ func AddPenjualan(c *gin.Context) {
 			subTotals = append(subTotals, pesanan.SubTotal)
 		}
 
-
+		// VERSI PNG
 		imagePath, err := helper.GenerateImage(300, 400, idPenjualan, dataJWT.Nama, produkID, formAddPelanggan.DataPesanan, subTotals, formAddPelanggan.Pembayaran)
+
+		// Versi PDF
+		// imagePath, err := helper.GeneratePDF(idPenjualan, dataJWT.Nama, produkID, formAddPelanggan.DataPesanan, subTotals, formAddPelanggan.Pembayaran)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{

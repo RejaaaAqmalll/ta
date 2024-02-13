@@ -4,16 +4,16 @@ go 1.20
 
 require github.com/joho/godotenv v1.5.1
 
-require github.com/h2non/filetype v1.1.3
+require (
+	github.com/fogleman/gg v1.3.0
+	github.com/google/uuid v1.6.0
+	github.com/jung-kurt/gofpdf v1.16.2
+)
 
 require (
-	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
-	github.com/jung-kurt/gofpdf v1.16.2 // indirect
 	golang.org/x/image v0.15.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 )
 
 require (

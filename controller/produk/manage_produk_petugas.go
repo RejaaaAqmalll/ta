@@ -22,24 +22,24 @@ func ListProdukPetugas(c *gin.Context) {
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status: http.StatusUnauthorized,
-			Error: err,
+			Status:  http.StatusUnauthorized,
+			Error:   err,
 			Message: base.NoUserLogin,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
 
-		isPetugas := dataJWT.Role == 3
+	isPetugas := dataJWT.Role == 3
 
 	if !isPetugas {
-	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-	        Status:  http.StatusUnauthorized,
-	        Error:   errors.New(base.ShouldPetugas),
-	        Message: base.ShouldPetugas,
-	        Data:    nil,
-	    })
-	    return
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldPetugas),
+			Message: base.ShouldPetugas,
+			Data:    nil,
+		})
+		return
 	}
 
 	db := config.ConnectDatabase()
@@ -52,23 +52,23 @@ func ListProdukPetugas(c *gin.Context) {
 	var listProduk []model.Produk
 
 	err = db.Debug().
-	Where("hapus = ?", 0).Order("id_produk ASC").Find(&listProduk).Error
+		Where("hapus = ?", 0).Order("id_produk ASC").Find(&listProduk).Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status: http.StatusInternalServerError,
-			Error: err,
+			Status:  http.StatusInternalServerError,
+			Error:   err,
 			Message: err.Error(),
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, response.Response{
-		Status: http.StatusOK,
-		Error:  nil,
+		Status:  http.StatusOK,
+		Error:   nil,
 		Message: base.SuccessListProduk,
-		Data: listProduk,
+		Data:    listProduk,
 	})
 }
 
@@ -77,10 +77,10 @@ func GetProdukByIdPetugas(c *gin.Context) {
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status: http.StatusUnauthorized,
-			Error: err,
+			Status:  http.StatusUnauthorized,
+			Error:   err,
 			Message: base.NoUserLogin,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -88,74 +88,73 @@ func GetProdukByIdPetugas(c *gin.Context) {
 	isPetugas := dataJWt.Role == 3
 
 	if !isPetugas {
-	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-	        Status:  http.StatusUnauthorized,
-	        Error:   errors.New(base.ShouldAdmin),
-	        Message: base.ShouldAdmin,
-	        Data:    nil,
-	    })
-	    return
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldPetugas),
+			Message: base.ShouldPetugas,
+			Data:    nil,
+		})
+		return
 	}
 
 	idProduk := c.Param("id")
 	if idProduk == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Status: http.StatusBadRequest,
-			Error: nil,
+			Status:  http.StatusBadRequest,
+			Error:   nil,
 			Message: base.ParamEmpty,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
 
-	db  := config.ConnectDatabase()
+	db := config.ConnectDatabase()
 
 	var dataProduk model.Produk
 	err = db.Debug().Where("id_produk = ?", idProduk).
-	First(&dataProduk).Error
+		First(&dataProduk).Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status: http.StatusInternalServerError,
-			Error: err,
+			Status:  http.StatusInternalServerError,
+			Error:   err,
 			Message: err.Error(),
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, response.Response{
-		Status: http.StatusOK,
-		Error:  nil,
+		Status:  http.StatusOK,
+		Error:   nil,
 		Message: base.SuccessListProduk,
-		Data: dataProduk,
+		Data:    dataProduk,
 	})
 }
 
-func AddProdukPetugas(c *gin.Context)  {
+func AddProdukPetugas(c *gin.Context) {
 	godotenv.Load()
-	dataJWT, err  := helper.GetClaims(c)
+	dataJWT, err := helper.GetClaims(c)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status: http.StatusUnauthorized,
-			Error: err,
+			Status:  http.StatusUnauthorized,
+			Error:   err,
 			Message: base.NoUserLogin,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
 
-
 	isPetugas := dataJWT.Role == 3
 	if !isPetugas {
-	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-	        Status:  http.StatusUnauthorized,
-	        Error:   errors.New(base.ShouldPetugas),
-	        Message: base.ShouldPetugas,
-	        Data:    nil,
-	    })
-	    return
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldPetugas),
+			Message: base.ShouldPetugas,
+			Data:    nil,
+		})
+		return
 	}
 
 	formAddProduk := request.AddProduk{}
@@ -163,10 +162,10 @@ func AddProdukPetugas(c *gin.Context)  {
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Status: http.StatusBadRequest,
-			Error: err,
+			Status:  http.StatusBadRequest,
+			Error:   err,
 			Message: base.ParamEmpty,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -174,17 +173,17 @@ func AddProdukPetugas(c *gin.Context)  {
 	err = c.ShouldBind(&formAddProduk)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Status: http.StatusBadRequest,
-			Error: err,
+			Status:  http.StatusBadRequest,
+			Error:   err,
 			Message: base.ParamEmpty,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
 
 	// validasi input file harus berupa gambar
 	src, err := file.Open()
-	if err != nil{
+	if err != nil {
 		// log.Println(err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Status:  http.StatusBadRequest,
@@ -197,7 +196,7 @@ func AddProdukPetugas(c *gin.Context)  {
 
 	buffer := make([]byte, 261)
 	_, err = src.Read(buffer)
-	
+
 	if err != nil && err != io.EOF {
 		// log.Println(err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
@@ -208,7 +207,7 @@ func AddProdukPetugas(c *gin.Context)  {
 		})
 		return
 	}
-	
+
 	// get mime type
 	kind := http.DetectContentType(buffer)
 	if kind == "" || !helper.IsSupportedImageFormat(kind) {
@@ -238,11 +237,11 @@ func AddProdukPetugas(c *gin.Context)  {
 	}
 
 	db := config.ConnectDatabase()
-	
+
 	link := fmt.Sprintf("/foto/%s", fileName)
 	finalLink := os.Getenv("BASE_URL") + link
 
-	var produk  = model.Produk{
+	var produk = model.Produk{
 		NamaProduk: formAddProduk.NamaProduk,
 		Harga:      formAddProduk.Harga,
 		Stok:       formAddProduk.Stok,
@@ -253,7 +252,7 @@ func AddProdukPetugas(c *gin.Context)  {
 	err = db.Debug().Create(&produk).Error
 
 	if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Status:  http.StatusBadRequest,
 			Error:   err,
 			Message: err.Error(),
@@ -266,45 +265,45 @@ func AddProdukPetugas(c *gin.Context)  {
 		Status:  http.StatusOK,
 		Error:   nil,
 		Message: base.SuccessAddProduk,
-		Data:   produk,
+		Data:    produk,
 	})
 }
 
-func EditProdukPetugas(c *gin.Context)  {
+func EditProdukPetugas(c *gin.Context) {
 	godotenv.Load()
 	dataJWT, err := helper.GetClaims(c)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status: http.StatusUnauthorized,
-			Error: err,
+			Status:  http.StatusUnauthorized,
+			Error:   err,
 			Message: base.NoUserLogin,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
 
 	// validasi akses hanya untuk petugas
 	isPetugas := dataJWT.Role == 3
-	
+
 	if !isPetugas {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
 			Status:  http.StatusUnauthorized,
-	        Error:   errors.New(base.ShouldPetugas),
-	        Message: base.ShouldPetugas,
-	        Data:    nil,
-	    })
-	    return
+			Error:   errors.New(base.ShouldPetugas),
+			Message: base.ShouldPetugas,
+			Data:    nil,
+		})
+		return
 	}
 
 	// parameter id untuk kondisi pengeditan data
 	idProduk := c.Param("id")
-	if idProduk == ""  {
+	if idProduk == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Status: http.StatusBadRequest,
-			Error: err,
+			Status:  http.StatusBadRequest,
+			Error:   err,
 			Message: base.ParamEmpty,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -337,7 +336,7 @@ func EditProdukPetugas(c *gin.Context)  {
 
 	// validasi input file harus berupa gambar
 	src, err := file.Open()
-	if err != nil{
+	if err != nil {
 		// log.Println(err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Status:  http.StatusBadRequest,
@@ -363,7 +362,7 @@ func EditProdukPetugas(c *gin.Context)  {
 		})
 		return
 	}
-	
+
 	// get mime type
 	kind := http.DetectContentType(buffer)
 	if kind == "" || !helper.IsSupportedImageFormat(kind) {
@@ -380,7 +379,6 @@ func EditProdukPetugas(c *gin.Context)  {
 
 	fileDest := helper.GetImageSavePath(fileName)
 
-
 	err = c.SaveUploadedFile(file, fileDest)
 	if err != nil {
 		// log.Println(err)
@@ -392,13 +390,13 @@ func EditProdukPetugas(c *gin.Context)  {
 		})
 		return
 	}
-	
+
 	db := config.ConnectDatabase()
 
 	link := fmt.Sprintf("/foto/%s", fileName)
 	finalLink := os.Getenv("BASE_URL") + link
 
-	var produk  = model.Produk{
+	var produk = model.Produk{
 		NamaProduk: formEdit.NamaProduk,
 		Harga:      formEdit.Harga,
 		Stok:       formEdit.Stok,
@@ -407,8 +405,8 @@ func EditProdukPetugas(c *gin.Context)  {
 	}
 
 	err = db.Debug().Model(model.Produk{}).
-	Where("id_produk = ?", idProduk).
-	Updates(&produk).Error
+		Where("id_produk = ?", idProduk).
+		Updates(&produk).Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
@@ -421,25 +419,25 @@ func EditProdukPetugas(c *gin.Context)  {
 	}
 
 	c.JSON(http.StatusOK, response.Response{
-		Status: http.StatusOK,
-		Error: nil,
+		Status:  http.StatusOK,
+		Error:   nil,
 		Message: base.SuccessEditPorduk,
 		Data: gin.H{
 			"data_produk": produk,
-			"link": finalLink,
+			"link":        finalLink,
 		},
 	})
 }
 
-func DeleteProdukPetugas(c *gin.Context)  {
+func DeleteProdukPetugas(c *gin.Context) {
 	dataJWT, err := helper.GetClaims(c)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status: http.StatusUnauthorized,
-			Error:  err,
+			Status:  http.StatusUnauthorized,
+			Error:   err,
 			Message: base.NoUserLogin,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -448,10 +446,10 @@ func DeleteProdukPetugas(c *gin.Context)  {
 
 	if !isPetugas {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Status: http.StatusBadRequest,
-			Error:  err,
+			Status:  http.StatusBadRequest,
+			Error:   err,
 			Message: base.ShouldPetugas,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -459,10 +457,10 @@ func DeleteProdukPetugas(c *gin.Context)  {
 	idProduk := c.Param("id")
 	if idProduk == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Status: http.StatusBadRequest,
-			Error:  err,
+			Status:  http.StatusBadRequest,
+			Error:   err,
 			Message: base.ParamEmpty,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -470,22 +468,22 @@ func DeleteProdukPetugas(c *gin.Context)  {
 	db := config.ConnectDatabase()
 
 	err = db.Debug().Model(model.Produk{}).
-	Where("id_produk = ?", idProduk).Update("hapus", 1).Error
+		Where("id_produk = ?", idProduk).Update("hapus", 1).Error
 
 	if err != nil {
-	c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-		Status: http.StatusInternalServerError,
-		Error:  err,
-		Message: err.Error(),
-		Data: nil,
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status:  http.StatusInternalServerError,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, response.Response{
-		Status: http.StatusOK,
-		Error:  nil,
+		Status:  http.StatusOK,
+		Error:   nil,
 		Message: base.SuccessDeleteProduk,
-		Data: nil,
+		Data:    nil,
 	})
 }

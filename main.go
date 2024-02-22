@@ -62,8 +62,9 @@ func main() {
 		admin.DELETE("/delete_customer/:id", customer.DeleteCustomer)
 
 		// Transaksi
-		admin.GET("/list_transaksi", penjualan.ListTransaksi)
+		admin.GET("/list_transaksi", penjualan.ListTransaksiV2)
 		admin.GET("/detail_transaksi", penjualan.DetailTransaksi)
+		admin.PATCH("/edit_transaksi", penjualan.EditTransaksi)
 	}
 
 	// ====================== PETUGAS ======================================

@@ -61,7 +61,7 @@ func AddPenjualan(c *gin.Context) {
 	db := config.ConnectDatabase()
 	var produk []model.Produk
 	// validasi stok barang
-	
+
 	for _, each := range formAddPelanggan.DataPesanan {
 		err = db.Debug().Where("id_produk = ?", each.IdProduk).Find(&produk).Error
 		if err != nil {
@@ -73,7 +73,7 @@ func AddPenjualan(c *gin.Context) {
 			})
 			return
 		}
-				
+
 		for _, eachProduk := range produk {
 			if each.JumlahProduk > eachProduk.Stok {
 				c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
@@ -85,23 +85,22 @@ func AddPenjualan(c *gin.Context) {
 				return
 			}
 		}
-		
+
 	}
-	
+
 	// mengambil id terakhir pelanggan
 	db.Last(&pelanggan)
 	var lastID string
 	var idPelanggan string
 	if pelanggan.IdPelanggan == "" {
 		lastID = "PLG000"
-		} else {
-			lastID = pelanggan.IdPelanggan
-		}
-		
+	} else {
+		lastID = pelanggan.IdPelanggan
+	}
 
-		if len(lastID) >= 3 {
-			lastNum, err := strconv.Atoi(lastID[3:])
-		if err !=  nil {
+	if len(lastID) >= 3 {
+		lastNum, err := strconv.Atoi(lastID[3:])
+		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 				Status:  http.StatusInternalServerError,
 				Error:   err,
@@ -110,20 +109,17 @@ func AddPenjualan(c *gin.Context) {
 			})
 			return
 		}
-			newNum := lastNum + 1
-			idPelanggan = fmt.Sprintf("PLG%03d", newNum)
-		} else {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-				Status:  http.StatusInternalServerError,
-				Error:   errors.New(base.InvalidID),
-				Message: base.InvalidID,
-				Data:    nil,
-			})
-			return
-		}
-
-
-
+		newNum := lastNum + 1
+		idPelanggan = fmt.Sprintf("PLG%03d", newNum)
+	} else {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status:  http.StatusInternalServerError,
+			Error:   errors.New(base.InvalidID),
+			Message: base.InvalidID,
+			Data:    nil,
+		})
+		return
+	}
 
 	// idPelanggan := fmt.Sprintf("PLG%03d", newNum)
 	formatTime := time.Now().Format("060102")
@@ -136,8 +132,8 @@ func AddPenjualan(c *gin.Context) {
 		code[i] = modalcode[rand.Intn(len(modalcode))]
 	}
 	lastNumber := string(code)
-	idPenjualan :=  fmt.Sprintf("TRS%s", formatTime+lastNumber)
-	
+	idPenjualan := fmt.Sprintf("TRS%s", formatTime+lastNumber)
+
 	// Transaction Begin
 	db.Transaction(func(tx *gorm.DB) error {
 		// Insert tabel pelanggan
@@ -146,27 +142,27 @@ func AddPenjualan(c *gin.Context) {
 			Email:       formAddPelanggan.Email,
 			Nama:        formAddPelanggan.Nama,
 			NoTelp:      formAddPelanggan.NoTelp,
-			Alamat: 	formAddPelanggan.Alamat,
+			Alamat:      formAddPelanggan.Alamat,
 		}).Error
 
 		if err != nil {
-		tx.Rollback()
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status:  http.StatusInternalServerError,
-			Error:   err,
-			Message: err.Error(),
-			Data:    nil,
-		})
-		return err
+			tx.Rollback()
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+				Status:  http.StatusInternalServerError,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return err
 		}
 
 		// masukkan ke tabel penjualan
 		err = tx.Debug().Create(&model.Penjualan{
-			IdPenjualan: idPenjualan,
+			IdPenjualan:          idPenjualan,
 			PelangganIdPelanggan: idPelanggan,
-			TotalHarga: formAddPelanggan.Pembayaran.Grandtotal,	
+			TotalHarga:           formAddPelanggan.Pembayaran.Grandtotal,
 		}).Error
-		
+
 		if err != nil {
 			tx.Rollback()
 			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
@@ -181,11 +177,11 @@ func AddPenjualan(c *gin.Context) {
 		for _, each := range formAddPelanggan.DataPesanan {
 			// loop , insert ke tabel detail penjualan
 			err = tx.Debug().Create(&model.DetailPenjualan{
-				IdDetailPenjualan: uuid.New().String(),
+				IdDetailPenjualan:    uuid.New().String(),
 				PenjualanIdPenjualan: idPenjualan,
-				ProdukIdProduk: each.IdProduk,
-				JumlahProduk: each.JumlahProduk,
-				SubTotal: each.SubTotal,
+				ProdukIdProduk:       each.IdProduk,
+				JumlahProduk:         each.JumlahProduk,
+				SubTotal:             each.SubTotal,
 			}).Error
 
 			if err != nil {
@@ -200,14 +196,13 @@ func AddPenjualan(c *gin.Context) {
 			}
 		}
 
-
 		// insert tabel pembayaran
 		err = tx.Debug().Create(&model.Pembayaran{
-			Idpembayaran: uuid.New().String(),
+			Idpembayaran:         uuid.New().String(),
 			PenjualanIdPenjualan: idPenjualan,
-			Amount: formAddPelanggan.Pembayaran.Amount,
-			BiayaAdmin: formAddPelanggan.Pembayaran.BiayaAdmin,
-			Grandtotal: formAddPelanggan.Pembayaran.Grandtotal,
+			Amount:               formAddPelanggan.Pembayaran.Amount,
+			BiayaAdmin:           formAddPelanggan.Pembayaran.BiayaAdmin,
+			Grandtotal:           formAddPelanggan.Pembayaran.Grandtotal,
 		}).Error
 
 		if err != nil {
@@ -221,11 +216,10 @@ func AddPenjualan(c *gin.Context) {
 			return err
 		}
 
-
 		// update stok
 		for _, each := range formAddPelanggan.DataPesanan {
 			err = tx.Debug().Model(&model.Produk{}).Where("id_produk = ?", each.IdProduk).
-			Update("stok", gorm.Expr("stok - ?", each.JumlahProduk)).Error
+				Update("stok", gorm.Expr("stok - ?", each.JumlahProduk)).Error
 			if err != nil {
 				tx.Rollback()
 				c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
@@ -246,41 +240,41 @@ func AddPenjualan(c *gin.Context) {
 	// Go Func untuk generate image dan send to email
 	// go func() {
 
-		var produkID []int
-		var subTotals []float64
+	var produkID []int
+	var subTotals []float64
 
-		for _, pesanan := range formAddPelanggan.DataPesanan {
-			produkID = append(produkID, pesanan.IdProduk)
-			subTotals = append(subTotals, pesanan.SubTotal)
-		}
+	for _, pesanan := range formAddPelanggan.DataPesanan {
+		produkID = append(produkID, pesanan.IdProduk)
+		subTotals = append(subTotals, pesanan.SubTotal)
+	}
 
-		// VERSI PNG
-		imagePath, err := helper.GenerateImage(300, 400, idPenjualan, dataJWT.Nama, produkID, formAddPelanggan.DataPesanan, subTotals, formAddPelanggan.Pembayaran)
+	// VERSI PNG
+	imagePath, err := helper.GenerateImage(300, 400, idPenjualan, dataJWT.Nama, produkID, formAddPelanggan.DataPesanan, subTotals, formAddPelanggan.Pembayaran)
 
-		// Versi PDF
-		// imagePath, err := helper.GeneratePDF(idPenjualan, dataJWT.Nama, produkID, formAddPelanggan.DataPesanan, subTotals, formAddPelanggan.Pembayaran)
+	// Versi PDF
+	// imagePath, err := helper.GeneratePDF(idPenjualan, dataJWT.Nama, produkID, formAddPelanggan.DataPesanan, subTotals, formAddPelanggan.Pembayaran)
 
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-				Status:  http.StatusInternalServerError,
-				Error:   err,
-				Message: err.Error(),
-				Data:    nil,
-			})
-			return
-		}
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status:  http.StatusInternalServerError,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
 
-		err = helper.SendEmail(formAddPelanggan.Email, imagePath)
+	err = helper.SendEmail(formAddPelanggan.Email, imagePath)
 
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-				Status:  http.StatusInternalServerError,
-				Error:   err,
-				Message: err.Error(),
-				Data:    nil,
-			})
-			return
-		}
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status:  http.StatusInternalServerError,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
 
 	// }()
 
@@ -289,10 +283,10 @@ func AddPenjualan(c *gin.Context) {
 		Error:   nil,
 		Message: base.SuccesTransaction,
 		Data: gin.H{
-			"id_transaksi": idPenjualan,
-			"nama_kasir": dataJWT.Nama,
+			"id_transaksi":      idPenjualan,
+			"nama_kasir":        dataJWT.Nama,
 			"tanggal_transaksi": time.Now().Format("02.01.2006"),
-			"data_pesanan": formAddPelanggan.DataPesanan,
+			"data_pesanan":      formAddPelanggan.DataPesanan,
 		},
 	})
 }
@@ -302,10 +296,10 @@ func ListTransaksi(c *gin.Context) {
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status: http.StatusUnauthorized,
-			Error:  err,
+			Status:  http.StatusUnauthorized,
+			Error:   err,
 			Message: base.NoUserLogin,
-			Data:   nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -329,23 +323,90 @@ func ListTransaksi(c *gin.Context) {
 	}
 
 	var transaksi []model.Penjualan
-	err = db.Debug().Where("hapus = ?", 0).Order("created_at DESC").Preload("DetailPenjualan").
-	Find(&transaksi).Error
+	err = db.Debug().Where("hapus = ?", 0).Order("created_at DESC").Preload("DetailPenjualan", func(tx *gorm.DB) *gorm.DB {
+		return tx.Where("detail_penjualan.hapus = ?", 0)
+	}).
+		Find(&transaksi).Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status: http.StatusInternalServerError,
-			Error:  err,
+			Status:  http.StatusInternalServerError,
+			Error:   err,
 			Message: err.Error(),
-			Data:   nil,
+			Data:    nil,
 		})
 		return
 	}
 
 	c.JSONP(http.StatusOK, response.Response{
-		Status: http.StatusOK,
-		Error:  nil,
+		Status:  http.StatusOK,
+		Error:   nil,
 		Message: base.SuccessListTransaksi,
-		Data:   transaksi,
+		Data:    transaksi,
+	})
+}
+
+func DetailTransaksi(c *gin.Context) {
+	dataJWT, err := helper.GetClaims(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   err,
+			Message: base.NoUserLogin,
+			Data:    nil,
+		})
+		return
+	}
+
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
+
+	if !isAdmin {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldAdmin),
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
+	}
+
+	idTransaksi := c.Query("idtransaksi")
+
+	if idTransaksi == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
+			Error:   errors.New(base.ParamEmpty),
+			Message: base.ParamEmpty,
+			Data:    nil,
+		})
+		return
+	}
+
+	db := config.ConnectDatabase()
+
+	var detailPenjualan []model.DetailPenjualan
+
+	err = db.Debug().Where("penjualan_id_penjualan = ?", idTransaksi).Where("hapus = ?", 0).
+		Find(&detailPenjualan).Error
+
+	length := len(detailPenjualan)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status:  http.StatusInternalServerError,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.ResponseArray{
+		Status:  http.StatusOK,
+		Error:   nil,
+		Message: base.SuccessDetailTransaksi,
+		Data:    detailPenjualan,
+		Length:  length,
 	})
 }

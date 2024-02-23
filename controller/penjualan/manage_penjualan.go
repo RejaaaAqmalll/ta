@@ -431,7 +431,7 @@ func EditTransaksi(c *gin.Context) {
 		return
 	}
 
-	isAdmin := dataJWT.Role == 1
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
@@ -442,6 +442,85 @@ func EditTransaksi(c *gin.Context) {
 		})
 		return
 	}
+
+	idDetailTransaksi := c.Query("iddetail")
+	if idDetailTransaksi == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+			Status:  http.StatusBadRequest,
+			Error:   errors.New(base.ParamEmpty + "(iddetail harus diisi)"),
+			Message: base.ParamEmpty,
+			Data:    nil,
+		})
+		return
+	}
+
+	db := config.ConnectDatabase()
+
+	var detailPenjualan model.DetailPenjualan
+
+	// query untuk mendapatkan detail transaksi berdasarkan id detail transaksi
+
+	db.Where("id_detail_penjualan = ?", idDetailTransaksi).
+		First(&detailPenjualan)
+
+	idproduk := detailPenjualan.ProdukIdProduk
+	idpenjualan := detailPenjualan.PenjualanIdPenjualan
+
+	db.Transaction(func(tx *gorm.DB) error {
+		// update produk stok
+		err = tx.Debug().Model(&model.Produk{}).Where("id_produk = ?", idproduk).
+			Update("stok", gorm.Expr("stok + ?", detailPenjualan.JumlahProduk)).Error
+		if err != nil {
+			tx.Rollback()
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+				Status:  http.StatusInternalServerError,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return err
+		}
+
+		// update penjualan pada harga total di kurangi data yang di refund
+		err = tx.Debug().Model(&model.Penjualan{}).Where("id_penjualan = ?", idpenjualan).
+			Update("total_harga", gorm.Expr("total_harga - ?", detailPenjualan.SubTotal)).Error
+
+		if err != nil {
+			tx.Rollback()
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+				Status:  http.StatusInternalServerError,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return err
+		}
+
+		// update detail penjualan
+		err = tx.Debug().Model(&model.DetailPenjualan{}).Where("id_detail_penjualan = ?", idDetailTransaksi).
+			Update("hapus", 1).Error
+
+		if err != nil {
+			tx.Rollback()
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+				Status:  http.StatusInternalServerError,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return err
+		}
+
+		tx.Commit()
+		return nil
+	})
+
+	c.JSON(http.StatusOK, response.Response{
+		Status:  http.StatusOK,
+		Error:   nil,
+		Message: base.SuccessEditTransaksi,
+		Data:    nil,
+	})
 
 }
 

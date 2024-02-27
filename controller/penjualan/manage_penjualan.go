@@ -318,6 +318,44 @@ func ListTransaksi(c *gin.Context) {
 
 	db := config.ConnectDatabase()
 
+	limit := c.Query("limit")
+
+	if limit != "" {
+		limitInt, err := strconv.Atoi(limit)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+				Status:  http.StatusBadRequest,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return
+		}
+		db = db.Limit(limitInt)
+	} else {
+		db = db.Limit(10)
+	}
+
+	offset := c.Query("offset")
+
+	if offset != "" {
+		offsetInt, err := strconv.Atoi(offset)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+				Status:  http.StatusBadRequest,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return
+		}
+		db = db.Offset(offsetInt)
+	} else {
+		db = db.Offset(0)
+	}
+
 	key := c.Query("key")
 	if key != "" {
 		db = db.Where("id_penjualan LIKE ?", "%"+key+"%")
@@ -382,7 +420,7 @@ func DetailTransaksi(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Status:  http.StatusBadRequest,
 			Error:   errors.New(base.ParamEmpty),
-			Message: base.ParamEmpty,
+			Message: base.ParamEmpty + " idtransaksi kosong",
 			Data:    nil,
 		})
 		return

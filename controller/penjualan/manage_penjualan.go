@@ -159,6 +159,7 @@ func AddPenjualan(c *gin.Context) {
 		// masukkan ke tabel penjualan
 		err = tx.Debug().Create(&model.Penjualan{
 			IdPenjualan:          idPenjualan,
+			UserIduser:           dataJWT.UserId,
 			PelangganIdPelanggan: idPelanggan,
 			TotalHarga:           formAddPelanggan.Pembayaran.Grandtotal,
 		}).Error
@@ -323,9 +324,13 @@ func ListTransaksi(c *gin.Context) {
 	}
 
 	var transaksi []model.Penjualan
-	err = db.Debug().Where("hapus = ?", 0).Order("created_at DESC").Preload("DetailPenjualan", func(tx *gorm.DB) *gorm.DB {
-		return tx.Where("detail_penjualan.hapus = ?", 0)
-	}).
+	err = db.Debug().Where("hapus = ?", 0).Order("created_at DESC").
+		Preload("DetailPenjualan", func(tx *gorm.DB) *gorm.DB {
+			return tx.Where("detail_penjualan.hapus = ?", 0)
+		}).
+		Preload("User", func(tx *gorm.DB) *gorm.DB {
+			return tx.Where("user.hapus = ?", 0)
+		}).
 		Find(&transaksi).Error
 
 	if err != nil {
@@ -387,7 +392,12 @@ func DetailTransaksi(c *gin.Context) {
 
 	var detailPenjualan []model.DetailPenjualan
 
-	err = db.Debug().Where("penjualan_id_penjualan = ?", idTransaksi).Where("hapus = ?", 0).
+	err = db.Debug().
+		Preload("Produk", func(tx *gorm.DB) *gorm.DB {
+			return tx.Where("produk.hapus = ?", 0)
+		}).
+		Where("penjualan_id_penjualan = ?", idTransaksi).
+		Where("hapus = ?", 0).
 		Find(&detailPenjualan).Error
 
 	length := len(detailPenjualan)
@@ -410,13 +420,6 @@ func DetailTransaksi(c *gin.Context) {
 		Length:  length,
 	})
 }
-
-// type ResponseListTransaksi struct {
-// 	IdTransaksi      string    `json:"idtransaksi"`
-// 	TanggalTransaksi time.Time `json:"tanggaltransaksi"`
-// 	TotalPrice       float64   `json:"totalprice"`
-// 	TotalItems       int       `json:"totalitems"`
-// }
 
 func EditTransaksi(c *gin.Context) {
 	dataJWT, err := helper.GetClaims(c)

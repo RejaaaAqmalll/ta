@@ -80,6 +80,7 @@ func main() {
 		petugas.PATCH("/edit_produk/:id", produk.EditProdukPetugas)
 		petugas.DELETE("/delete_produk/:id", produk.DeleteProdukPetugas)
 
+		// Penjualan
 		petugas.POST("/add_penjualan", penjualan.AddPenjualan)
 	}
 

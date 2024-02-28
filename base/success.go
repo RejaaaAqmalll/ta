@@ -18,5 +18,5 @@ const (
 	SuccessListTransaksi   = "get list transaksi success"
 	SuccesTransaction      = "successful transaction"
 	SuccessDetailTransaksi = "success get detail transaction"
-	SuccessEditTransaksi   = "edit transaksi success"
+	SuccessRefundTransaksi = "refund transaksi success"
 )

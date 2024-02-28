@@ -557,6 +557,22 @@ func RefundTransaksi(c *gin.Context) {
 			return err
 		}
 
+		// update pembayaran pada amount dan grandtotal
+		err = tx.Debug().Model(&model.Pembayaran{}).Where("penjualan_id_penjualan = ?", idpenjualan).
+			Update("amount", gorm.Expr("amount - ?", detailPenjualan.SubTotal)).
+			Update("grandtotal", gorm.Expr("grandtotal - ?", detailPenjualan.SubTotal)).Error
+
+		if err != nil {
+			tx.Rollback()
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+				Status:  http.StatusInternalServerError,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return err
+		}
+
 		// update penjualan pada harga total di kurangi data yang di refund
 		err = tx.Debug().Model(&model.Penjualan{}).Where("id_penjualan = ?", idpenjualan).
 			Update("total_harga", gorm.Expr("total_harga - ?", detailPenjualan.SubTotal)).Error
@@ -594,7 +610,7 @@ func RefundTransaksi(c *gin.Context) {
 	c.JSON(http.StatusOK, response.Response{
 		Status:  http.StatusOK,
 		Error:   nil,
-		Message: base.SuccessEditTransaksi,
+		Message: base.SuccessRefundTransaksi,
 		Data:    nil,
 	})
 }

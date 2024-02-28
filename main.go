@@ -64,7 +64,7 @@ func main() {
 		// Transaksi
 		admin.GET("/list_transaksi", penjualan.ListTransaksi)
 		admin.GET("/detail_transaksi", penjualan.DetailTransaksi)
-		admin.PATCH("/edit_transaksi", penjualan.EditTransaksi)
+		admin.PATCH("/refund_transaksi", penjualan.RefundTransaksi)
 	}
 
 	// ====================== PETUGAS ======================================

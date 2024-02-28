@@ -318,6 +318,7 @@ func ListTransaksi(c *gin.Context) {
 
 	db := config.ConnectDatabase()
 
+	// PAGINATION
 	limit := c.Query("limit")
 
 	if limit != "" {
@@ -356,9 +357,43 @@ func ListTransaksi(c *gin.Context) {
 		db = db.Offset(0)
 	}
 
+	// SEARCH
 	key := c.Query("key")
 	if key != "" {
 		db = db.Where("id_penjualan LIKE ?", "%"+key+"%")
+	}
+
+	// FILTER BY
+	layout := "2006-01-02"
+	tanggalMulai := c.Query("tanggal_awal")
+	tanggalAkhir := c.Query("tanggal_akhir")
+
+	// fmt.Println(tanggalMulai)
+	// fmt.Println(tanggalAkhir)
+
+	if tanggalMulai != "" && tanggalAkhir != "" {
+		_, err = time.Parse(layout, tanggalMulai)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+				Status:  http.StatusBadRequest,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return
+		}
+		_, err = time.Parse(layout, tanggalAkhir)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
+				Status:  http.StatusBadRequest,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return
+		}
+
+		db = db.Where("penjualan.created_at >= ? AND penjualan.created_at <= ?", tanggalMulai, tanggalAkhir)
 	}
 
 	var transaksi []model.Penjualan
@@ -459,7 +494,7 @@ func DetailTransaksi(c *gin.Context) {
 	})
 }
 
-func EditTransaksi(c *gin.Context) {
+func RefundTransaksi(c *gin.Context) {
 	dataJWT, err := helper.GetClaims(c)
 
 	if err != nil {
@@ -562,7 +597,6 @@ func EditTransaksi(c *gin.Context) {
 		Message: base.SuccessEditTransaksi,
 		Data:    nil,
 	})
-
 }
 
 // func ListTransaksiV2(c *gin.Context) {

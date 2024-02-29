@@ -615,76 +615,69 @@ func RefundTransaksi(c *gin.Context) {
 	})
 }
 
-// func ListTransaksiV2(c *gin.Context) {
-// 	dataJWT, err := helper.GetClaims(c)
+type ResponseListTransaksi struct {
+	IdTransaksi      string    `json:"idtransaksi"`
+	TanggalTransaksi time.Time `json:"tanggaltransaksi"`
+	TotalPrice       float64   `json:"totalprice"`
+	Totalitems       int       `json:"totalitems"`
+}
 
-// 	if err != nil {
-// 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-// 			Status:  http.StatusUnauthorized,
-// 			Error:   err,
-// 			Message: base.NoUserLogin,
-// 			Data:    nil,
-// 		})
-// 		return
-// 	}
+func ListTransaksiV2(c *gin.Context) {
+	dataJWT, err := helper.GetClaims(c)
 
-// 	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   err,
+			Message: base.NoUserLogin,
+			Data:    nil,
+		})
+		return
+	}
 
-// 	if !isAdmin {
-// 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-// 			Status:  http.StatusUnauthorized,
-// 			Error:   errors.New(base.ShouldAdmin),
-// 			Message: base.ShouldAdmin,
-// 			Data:    nil,
-// 		})
-// 		return
-// 	}
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
-// 	db := config.ConnectDatabase()
+	if !isAdmin {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldAdmin),
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
+	}
 
-// 	key := c.Query("key")
-// 	if key != "" {
-// 		db = db.Where("penjualan.id_penjualan LIKE ?", "%"+key+"%")
-// 	}
+	db := config.ConnectDatabase()
 
-// 	var transaksi []ResponseListTransaksi
+	key := c.Query("key")
+	if key != "" {
+		db = db.Where("penjualan.id_penjualan LIKE ?", "%"+key+"%")
+	}
 
-// 	err = db.Debug().Table("penjualan").
-// 		Select("penjualan.id_penjualan as idtransaksi, penjualan.created_at as tanggaltransaksi,"+
-// 			"SUM(detail_penjualan.sub_total) as totalprice, COUNT(detail_penjualan.id_detail_penjualan) as totalitems").
-// 		Joins("JOIN detail_penjualan ON detail_penjualan.penjualan_id_penjualan = penjualan.id_penjualan").
-// 		Where("penjualan.hapus = ?", 0).
-// 		Group("penjualan.id_penjualan").
-// 		Find(&transaksi).Error
+	var transaksi []ResponseListTransaksi
 
-// 	// query := `SELECT penjualan.id_penjualan as idtransaksi, penjualan.created_at as tanggaltransaksi,
-// 	//         SUM(detail_penjualan.sub_total) as totalprice, COUNT(detail_penjualan.id_detail_penjualan) as totalitems
-// 	//         FROM penjualan
-// 	//         JOIN detail_penjualan ON detail_penjualan.penjualan_id_penjualan = penjualan.id_penjualan
-// 	//         WHERE penjualan.hapus = ?
-// 	//         GROUP BY penjualan.id_penjualan`
+	err = db.Debug().Table("penjualan").
+		Select("penjualan.id_penjualan as idtransaksi, penjualan.created_at as tanggaltransaksi,"+
+			"SUM(detail_penjualan.sub_total) as totalprice, COUNT(detail_penjualan.id_detail_penjualan) as totalitems").
+		Joins("JOIN detail_penjualan ON detail_penjualan.penjualan_id_penjualan = detail_penjualan.penjualan_id_penjualan").
+		Where("penjualan.hapus = ?", 0).
+		Group("penjualan.id_penjualan").
+		Find(&transaksi).Error
 
-// 	// err = db.Debug().Raw(query, 0).Scan(&transaksi).Error
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status:  http.StatusInternalServerError,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
 
-// 	if err != nil {
-// 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-// 			Status:  http.StatusInternalServerError,
-// 			Error:   err,
-// 			Message: err.Error(),
-// 			Data:    nil,
-// 		})
-// 		return
-// 	}
-
-// 	// for _, v := range transaksi {
-// 	// 	fmt.Println("idtransaski = ", v.IdTransaksi)
-// 	// 	fmt.Println("tanggaltransaksi = ", v.TanggalTransaksi.Format("2006-01-02 15:04:05"))
-// 	// }
-
-// 	c.JSON(http.StatusOK, response.Response{
-// 		Status:  http.StatusOK,
-// 		Error:   nil,
-// 		Message: "Success",
-// 		Data:    transaksi,
-// 	})
-// }
+	c.JSON(http.StatusOK, response.Response{
+		Status:  http.StatusOK,
+		Error:   nil,
+		Message: "Success",
+		Data:    transaksi,
+	})
+}

@@ -56,6 +56,7 @@ func main() {
 		admin.POST("/add_produk", produk.AddProduk)
 		admin.PATCH("/edit_produk/:id", produk.EditProduk)
 		admin.DELETE("/delete_produk/:id", produk.DeleteProduk)
+		admin.GET("/get_bestseller", produk.GetProdukBestSeller)
 
 		// Customer
 		admin.GET("/list_customer", customer.ListCustomer)

@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"ta-kasir/base"
 	"ta-kasir/config"
 	"ta-kasir/helper"
@@ -20,7 +22,7 @@ import (
 func AddProduk(c *gin.Context) {
 	godotenv.Load()
 	dataJWT, err := helper.GetClaims(c)
-	
+
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
 			Status:  http.StatusUnauthorized,
@@ -57,20 +59,20 @@ func AddProduk(c *gin.Context) {
 	// validasi role wajin 1 atau 2
 
 	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
-	
+
 	if !isAdmin {
-	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-	        Status:  http.StatusUnauthorized,
-	        Error:   errors.New(base.ShouldAdmin),
-	        Message: base.ShouldAdmin,
-	        Data:    nil,
-	    })
-	    return
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldAdmin),
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
 	}
 
 	// validasi input file harus berupa gambar
 	src, err := file.Open()
-	if err != nil{
+	if err != nil {
 		// log.Println(err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Status:  http.StatusBadRequest,
@@ -83,7 +85,7 @@ func AddProduk(c *gin.Context) {
 
 	buffer := make([]byte, 261)
 	_, err = src.Read(buffer)
-	
+
 	if err != nil && err != io.EOF {
 		// log.Println(err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
@@ -94,7 +96,7 @@ func AddProduk(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// get mime type
 	kind := http.DetectContentType(buffer)
 	if kind == "" || !helper.IsSupportedImageFormat(kind) {
@@ -124,16 +126,16 @@ func AddProduk(c *gin.Context) {
 	}
 
 	db := config.ConnectDatabase()
-	
+
 	link := fmt.Sprintf("/foto/%s", fileName)
 	finalLink := os.Getenv("BASE_URL") + link
 
-	var produk  = model.Produk{
-	NamaProduk: formAddProduk.NamaProduk,
-	Harga:      formAddProduk.Harga,
-	Stok:       formAddProduk.Stok,
-	Gambar: 	file.Filename,	
-	LinkGambar: finalLink,
+	var produk = model.Produk{
+		NamaProduk: formAddProduk.NamaProduk,
+		Harga:      formAddProduk.Harga,
+		Stok:       formAddProduk.Stok,
+		Gambar:     file.Filename,
+		LinkGambar: finalLink,
 	}
 
 	err = db.Debug().Create(&produk).Error
@@ -155,11 +157,11 @@ func AddProduk(c *gin.Context) {
 		Status:  http.StatusOK,
 		Error:   nil,
 		Message: base.SuccessAddProduk,
-		Data:   produk,
+		Data:    produk,
 	})
 }
 
-func EditProduk(c *gin.Context)  {
+func EditProduk(c *gin.Context) {
 	godotenv.Load()
 	dataJWT, err := helper.GetClaims(c)
 	if err != nil {
@@ -175,10 +177,10 @@ func EditProduk(c *gin.Context)  {
 	idProduk := c.Param("id")
 	if idProduk == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Status: http.StatusBadRequest,
-			Error: nil,
+			Status:  http.StatusBadRequest,
+			Error:   nil,
 			Message: base.ParamEmpty,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -207,20 +209,20 @@ func EditProduk(c *gin.Context)  {
 	}
 
 	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
-	
+
 	if !isAdmin {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
 			Status:  http.StatusUnauthorized,
-	        Error:   errors.New(base.ShouldAdmin),
-	        Message: base.ShouldAdmin,
-	        Data:    nil,
-	    })
-	    return
+			Error:   errors.New(base.ShouldAdmin),
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
 	}
 
 	// validasi input file harus berupa gambar
 	src, err := file.Open()
-	if err != nil{
+	if err != nil {
 		// log.Println(err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
 			Status:  http.StatusBadRequest,
@@ -246,7 +248,7 @@ func EditProduk(c *gin.Context)  {
 		})
 		return
 	}
-	
+
 	// get mime type
 	kind := http.DetectContentType(buffer)
 	if kind == "" || !helper.IsSupportedImageFormat(kind) {
@@ -263,7 +265,6 @@ func EditProduk(c *gin.Context)  {
 
 	fileDest := helper.GetImageSavePath(fileName)
 
-
 	err = c.SaveUploadedFile(file, fileDest)
 	if err != nil {
 		// log.Println(err)
@@ -275,23 +276,23 @@ func EditProduk(c *gin.Context)  {
 		})
 		return
 	}
-	
+
 	db := config.ConnectDatabase()
 
 	link := fmt.Sprintf("/foto/%s", fileName)
 	finalLink := os.Getenv("BASE_URL") + link
 
-	var produk  = model.Produk{
+	var produk = model.Produk{
 		NamaProduk: formEditProduk.NamaProduk,
-		Harga: formEditProduk.Harga,
-		Stok: formEditProduk.Stok,
-		Gambar: file.Filename,
+		Harga:      formEditProduk.Harga,
+		Stok:       formEditProduk.Stok,
+		Gambar:     file.Filename,
 		LinkGambar: finalLink,
 	}
-	
+
 	err = db.Debug().Model(model.Produk{}).
-	Where("id_produk = ?", idProduk).
-	Updates(&produk).Error
+		Where("id_produk = ?", idProduk).
+		Updates(&produk).Error
 
 	if err != nil {
 		// log.Println(err)
@@ -302,29 +303,29 @@ func EditProduk(c *gin.Context)  {
 			Data:    nil,
 		})
 		return
-	}	
+	}
 
 	// fmt.Println(finalLink)
 	c.JSON(http.StatusOK, response.Response{
 		Status:  http.StatusOK,
 		Error:   nil,
 		Message: base.SuccessEditPorduk,
-		Data:    gin.H{
+		Data: gin.H{
 			"data_produk": produk,
 			"link":        finalLink,
 		},
 	})
 }
 
-func DeleteProduk(c *gin.Context)  {
+func DeleteProduk(c *gin.Context) {
 	idProduk := c.Param("id")
 
 	if idProduk == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Status: http.StatusBadRequest,
-			Error: nil,
+			Status:  http.StatusBadRequest,
+			Error:   nil,
 			Message: base.ParamEmpty,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -332,10 +333,10 @@ func DeleteProduk(c *gin.Context)  {
 	dataJWT, err := helper.GetClaims(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status: http.StatusUnauthorized,
-			Error: err,
+			Status:  http.StatusUnauthorized,
+			Error:   err,
 			Message: base.NoUserLogin,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -344,45 +345,45 @@ func DeleteProduk(c *gin.Context)  {
 	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {
-	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-	        Status:  http.StatusUnauthorized,
-	        Error:   errors.New(base.ShouldAdmin),
-	        Message: base.ShouldAdmin,
-	        Data:    nil,
-	    })
-	    return
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldAdmin),
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
 	}
 
 	err = db.Debug().Model(model.Produk{}).
-	Where("id_produk = ?", idProduk).Update("hapus", 1).Error
+		Where("id_produk = ?", idProduk).Update("hapus", 1).Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status: http.StatusInternalServerError,
-			Error: err,
+			Status:  http.StatusInternalServerError,
+			Error:   err,
 			Message: err.Error(),
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, response.Response{
-		Status: http.StatusOK,
-		Error:  nil,
+		Status:  http.StatusOK,
+		Error:   nil,
 		Message: base.SuccessDeleteProduk,
-		Data: nil,
+		Data:    nil,
 	})
 }
 
-func ListProduk(c *gin.Context)  {
+func ListProduk(c *gin.Context) {
 	dataJWT, err := helper.GetClaims(c)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status: http.StatusUnauthorized,
-			Error: err,
+			Status:  http.StatusUnauthorized,
+			Error:   err,
 			Message: base.NoUserLogin,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -398,46 +399,46 @@ func ListProduk(c *gin.Context)  {
 	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {
-	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-	        Status:  http.StatusUnauthorized,
-	        Error:   errors.New(base.ShouldAdmin),
-	        Message: base.ShouldAdmin,
-	        Data:    nil,
-	    })
-	    return
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldAdmin),
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
 	}
 
 	var listProduk []model.Produk
 	err = db.Debug().
-	Where("hapus = ?", 0).Order("id_produk ASC").Find(&listProduk).Error
+		Where("hapus = ?", 0).Order("id_produk ASC").Find(&listProduk).Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status: http.StatusInternalServerError,
-			Error: err,
+			Status:  http.StatusInternalServerError,
+			Error:   err,
 			Message: err.Error(),
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, response.Response{
-		Status: http.StatusOK,
-		Error:  nil,
+		Status:  http.StatusOK,
+		Error:   nil,
 		Message: base.SuccessListProduk,
-		Data: listProduk,
+		Data:    listProduk,
 	})
 }
 
-func GetProdukById(c *gin.Context)  {
+func GetProdukById(c *gin.Context) {
 	dataJWT, err := helper.GetClaims(c)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status: http.StatusUnauthorized,
-			Error: err,
+			Status:  http.StatusUnauthorized,
+			Error:   err,
 			Message: base.NoUserLogin,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -445,10 +446,10 @@ func GetProdukById(c *gin.Context)  {
 	idProduk := c.Param("id")
 	if idProduk == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Status: http.StatusBadRequest,
-			Error: nil,
+			Status:  http.StatusBadRequest,
+			Error:   nil,
 			Message: base.ParamEmpty,
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -459,35 +460,112 @@ func GetProdukById(c *gin.Context)  {
 	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
 
 	if !isAdmin {
-	    c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-	        Status:  http.StatusUnauthorized,
-	        Error:   errors.New(base.ShouldAdmin),
-	        Message: base.ShouldAdmin,
-	        Data:    nil,
-	    })
-	    return
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldAdmin),
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
 	}
 
 	var produk model.Produk
 
 	err = db.Debug().Where("id_produk = ?", idProduk).
-	Where("hapus = ?", 0).First(&produk).Error
-
+		Where("hapus = ?", 0).First(&produk).Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status: http.StatusInternalServerError,
-			Error: err,
+			Status:  http.StatusInternalServerError,
+			Error:   err,
 			Message: err.Error(),
-			Data: nil,
+			Data:    nil,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, response.Response{
-		Status: http.StatusOK,
-		Error:  nil,
+		Status:  http.StatusOK,
+		Error:   nil,
 		Message: base.SuccessGetProduk,
-		Data: produk,
+		Data:    produk,
+	})
+}
+
+type dataBestSeller struct {
+	IdProduk   int    `json:"id_produk"`
+	NamaProduk string `json:"nama_produk"`
+	Terjual    int    `json:"terjual"`
+}
+
+func GetProdukBestSeller(c *gin.Context) {
+	dataJWT, err := helper.GetClaims(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   err,
+			Message: base.NoUserLogin,
+			Data:    nil,
+		})
+		return
+	}
+
+	// validasi admin terlebih dahulu
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
+
+	if !isAdmin {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldAdmin),
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
+	}
+
+	db := config.ConnectDatabase()
+	idprodukParam := c.Query("id_produk")
+
+	// memisahkan id
+	idprodukArray := strings.Split(idprodukParam, ",")
+
+	var idprodukInt []int
+	for _, idStr := range idprodukArray {
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid parameter"})
+			return
+		}
+		idprodukInt = append(idprodukInt, id)
+	}
+
+	var listProduk []dataBestSeller
+
+	if len(idprodukInt) > 0 {
+		if err = db.Debug().Table("detail_penjualan").
+			Select("SUM(detail_penjualan.jumlah_produk) as terjual,"+
+				"detail_penjualan.produk_id_produk as id_produk,"+
+				"produk.nama_produk as nama_produk").
+			Joins("JOIN produk ON produk.id_produk = detail_penjualan.produk_id_produk").
+			Where("detail_penjualan.produk_id_produk IN (?)", idprodukInt).
+			Group("detail_penjualan.produk_id_produk").
+			Find(&listProduk).Error; err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+				Status:  http.StatusInternalServerError,
+				Error:   err,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return
+		}
+
+	}
+
+	c.JSON(http.StatusOK, response.Response{
+		Status:  http.StatusOK,
+		Error:   nil,
+		Message: base.SuccessGetProduk,
+		Data:    listProduk,
 	})
 }

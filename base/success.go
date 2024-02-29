@@ -13,6 +13,7 @@ const (
 	SuccessGetWorker       = "get worker success"
 	SuccessListProduk      = "get list produk success"
 	SuccessGetProduk       = "get produk success"
+	SuccessGetBestSeller   = "get best seller success"
 	SuccessListCustomer    = "get list customer success"
 	SuccessDeleteCustomer  = "delete customer success"
 	SuccessListTransaksi   = "get list transaksi success"

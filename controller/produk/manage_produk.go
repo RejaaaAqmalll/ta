@@ -493,9 +493,11 @@ func GetProdukById(c *gin.Context) {
 }
 
 type dataBestSeller struct {
-	IdProduk   int    `json:"id_produk"`
-	NamaProduk string `json:"nama_produk"`
-	Terjual    int    `json:"terjual"`
+	IdProduk    int     `json:"id_produk"`
+	NamaProduk  string  `json:"nama_produk"`
+	HargaProduk float64 `json:"harga_produk"`
+	TotalHarga  float64 `json:"total_harga"`
+	Terjual     int     `json:"terjual"`
 }
 
 func GetProdukBestSeller(c *gin.Context) {
@@ -546,10 +548,14 @@ func GetProdukBestSeller(c *gin.Context) {
 		if err = db.Debug().Table("detail_penjualan").
 			Select("SUM(detail_penjualan.jumlah_produk) as terjual,"+
 				"detail_penjualan.produk_id_produk as id_produk,"+
-				"produk.nama_produk as nama_produk").
+				"produk.nama_produk as nama_produk,"+
+				"produk.harga as harga_produk,"+
+				"SUM(detail_penjualan.sub_total) as total_harga").
 			Joins("JOIN produk ON produk.id_produk = detail_penjualan.produk_id_produk").
 			Where("detail_penjualan.produk_id_produk IN (?)", idprodukInt).
+			Where("detail_penjualan.hapus = ?", 0).
 			Group("detail_penjualan.produk_id_produk").
+			Order("detail_penjualan.produk_id_produk ASC").
 			Find(&listProduk).Error; err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
 				Status:  http.StatusInternalServerError,
@@ -565,7 +571,7 @@ func GetProdukBestSeller(c *gin.Context) {
 	c.JSON(http.StatusOK, response.Response{
 		Status:  http.StatusOK,
 		Error:   nil,
-		Message: base.SuccessGetProduk,
+		Message: base.SuccessGetBestSeller,
 		Data:    listProduk,
 	})
 }

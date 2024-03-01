@@ -16,10 +16,10 @@ func ListCustomer(c *gin.Context) {
 	dataJWT, err := helper.GetClaims(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status: http.StatusUnauthorized,
-			Error:  err,
+			Status:  http.StatusUnauthorized,
+			Error:   err,
 			Message: base.NoUserLogin,
-			Data:   nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -51,19 +51,24 @@ func ListCustomer(c *gin.Context) {
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status: http.StatusInternalServerError,
-			Error:  err,
+			Status:  http.StatusInternalServerError,
+			Error:   err,
 			Message: err.Error(),
-			Data:   nil,
+			Data:    nil,
 		})
 		return
 	}
 
+	banyakPelanggan := len(listCustomer)
+
 	c.JSON(http.StatusOK, response.Response{
-		Status: http.StatusOK,
-		Error:  nil,
+		Status:  http.StatusOK,
+		Error:   nil,
 		Message: base.SuccessListCustomer,
-		Data:   listCustomer,
+		Data: gin.H{
+			"data_customer":    listCustomer,
+			"banyak_pelanggan": banyakPelanggan,
+		},
 	})
 }
 
@@ -72,10 +77,10 @@ func DeleteCustomer(c *gin.Context) {
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
-			Status: http.StatusUnauthorized,
-			Error:  err,
+			Status:  http.StatusUnauthorized,
+			Error:   err,
 			Message: base.NoUserLogin,
-			Data:   nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -96,10 +101,10 @@ func DeleteCustomer(c *gin.Context) {
 
 	if idCustomer == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Response{
-			Status: http.StatusBadRequest,
-			Error:  nil,
+			Status:  http.StatusBadRequest,
+			Error:   nil,
 			Message: base.ParamEmpty,
-			Data:   nil,
+			Data:    nil,
 		})
 		return
 	}
@@ -107,22 +112,22 @@ func DeleteCustomer(c *gin.Context) {
 	db := config.ConnectDatabase()
 
 	err = db.Model(&model.Pelanggan{}).
-	Where("id_pelanggan = ?", idCustomer).Update("hapus", 1).Error
+		Where("id_pelanggan = ?", idCustomer).Update("hapus", 1).Error
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-			Status: http.StatusInternalServerError,
-			Error:  err,
+			Status:  http.StatusInternalServerError,
+			Error:   err,
 			Message: err.Error(),
-			Data:   nil,
+			Data:    nil,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, response.Response{
-		Status: http.StatusOK,
-		Error:  nil,
+		Status:  http.StatusOK,
+		Error:   nil,
 		Message: base.SuccessDeleteCustomer,
-		Data:   nil,
+		Data:    nil,
 	})
 }

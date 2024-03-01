@@ -19,6 +19,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// type dataPesanan struct {
+// 	NamaProduk string  `json:"nama_produk"`
+// 	Quantity   int     `json:"quantity"`
+// 	SubTotal   float64 `json:"sub_total"`
+// }
+
 func AddPenjualan(c *gin.Context) {
 	dataJWT, err := helper.GetClaims(c)
 
@@ -232,6 +238,9 @@ func AddPenjualan(c *gin.Context) {
 				return err
 			}
 		}
+
+		// get response transaksi
+
 		// ketika semua tidak error maka lakukan commit
 		tx.Commit()
 		return nil
@@ -288,6 +297,8 @@ func AddPenjualan(c *gin.Context) {
 			"nama_kasir":        dataJWT.Nama,
 			"tanggal_transaksi": time.Now().Format("02.01.2006"),
 			"data_pesanan":      formAddPelanggan.DataPesanan,
+			"amount":            formAddPelanggan.Pembayaran.Amount,
+			"total_transaksi":   formAddPelanggan.Pembayaran.Grandtotal,
 		},
 	})
 }
@@ -680,4 +691,56 @@ func ListTransaksiV2(c *gin.Context) {
 		Message: "Success",
 		Data:    transaksi,
 	})
+}
+
+func GetTotalPendapatan(c *gin.Context) {
+	dataJWT, err := helper.GetClaims(c)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   err,
+			Message: base.NoUserLogin,
+			Data:    nil,
+		})
+		return
+	}
+
+	// validasi admin
+	isAdmin := dataJWT.Role == 1 || dataJWT.Role == 2
+	if !isAdmin {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.Response{
+			Status:  http.StatusUnauthorized,
+			Error:   errors.New(base.ShouldAdmin),
+			Message: base.ShouldAdmin,
+			Data:    nil,
+		})
+		return
+	}
+
+	db := config.ConnectDatabase()
+
+	dataPendapatan := response.ResponsePendapatan{}
+	err = db.Table("pembayaran").Where("pembayaran.hapus = ?", 0).
+		Select("SUM(grandtotal) as pendapatan_kotor," +
+			"SUM(amount) as pendapatan_bersih").
+		Find(&dataPendapatan).Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status:  http.StatusInternalServerError,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Response{
+		Status:  http.StatusOK,
+		Error:   nil,
+		Message: "Success",
+		Data:    dataPendapatan,
+	})
+
 }

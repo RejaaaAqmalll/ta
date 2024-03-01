@@ -422,11 +422,28 @@ func ListProduk(c *gin.Context) {
 		return
 	}
 
+	var totalStok int64
+	err = db.Debug().
+		Table("produk").Select("SUM(stok) AS total_stok").Where("hapus = ?", 0).
+		Find(&totalStok).Error
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status:  http.StatusInternalServerError,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, response.Response{
 		Status:  http.StatusOK,
 		Error:   nil,
 		Message: base.SuccessListProduk,
-		Data:    listProduk,
+		Data: gin.H{
+			"listProduk": listProduk,
+			"total_stok": totalStok,
+		},
 	})
 }
 
@@ -565,13 +582,33 @@ func GetProdukBestSeller(c *gin.Context) {
 			})
 			return
 		}
+	}
 
+	// get total terjual
+	dbtotal := config.ConnectDatabase()
+
+	var totalTerjual int
+	err = dbtotal.Table("detail_penjualan").
+		Select("SUM(detail_penjualan.jumlah_produk)").
+		Find(&totalTerjual).Error
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status:  http.StatusInternalServerError,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
 	}
 
 	c.JSON(http.StatusOK, response.Response{
 		Status:  http.StatusOK,
 		Error:   nil,
 		Message: base.SuccessGetBestSeller,
-		Data:    listProduk,
+		Data: gin.H{
+			"data_best_seller": listProduk,
+			"total_terjual":    totalTerjual,
+		},
 	})
 }

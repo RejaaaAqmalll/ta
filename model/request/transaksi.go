@@ -11,6 +11,7 @@ type Transaksi struct {
 
 type Pesanan struct {
 	IdProduk     int     `json:"id_produk" form:"id_produk" binding:"required"`
+	NamaProduk   string  `json:"nama_produk" form:"nama_produk" binding:"required"`
 	JumlahProduk int     `json:"jumlah_produk" form:"jumlah_produk" binding:"required"`
 	SubTotal     float64 `json:"sub_total" form:"sub_total" binding:"required"`
 }

@@ -64,7 +64,7 @@ func main() {
 
 		// Transaksi
 		admin.GET("/list_transaksi", penjualan.ListTransaksi)
-		// admin.GET("list_transaksiV2", penjualan.ListTransaksiV2)
+		admin.GET("get_total_pendapatan", penjualan.GetTotalPendapatan)
 		admin.GET("/detail_transaksi", penjualan.DetailTransaksi)
 		admin.PATCH("/refund_transaksi", penjualan.RefundTransaksi)
 	}

@@ -21,3 +21,8 @@ type ResponseTest struct {
 	Message string `json:"message"`
 	Data    string `json:"data"`
 }
+
+type ResponsePendapatan struct {
+	PendapatanKotor  float64 `json:"pendapatan_kotor"`
+	PendapatanBersih float64 `json:"pendapatan_bersih"`
+}

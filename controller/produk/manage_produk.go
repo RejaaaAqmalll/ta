@@ -513,6 +513,7 @@ type dataBestSeller struct {
 	NamaProduk  string  `json:"nama_produk"`
 	HargaProduk float64 `json:"harga_produk"`
 	TotalHarga  float64 `json:"total_harga"`
+	LinkGambar  string  `json:"link_gambar"`
 	Terjual     int     `json:"terjual"`
 }
 
@@ -566,6 +567,7 @@ func GetProdukBestSeller(c *gin.Context) {
 			"detail_penjualan.produk_id_produk as id_produk,"+
 			"produk.nama_produk as nama_produk,"+
 			"produk.harga as harga_produk,"+
+			"produk.link_gambar as link_gambar,"+
 			"SUM(detail_penjualan.sub_total) as total_harga").
 		Joins("JOIN produk ON produk.id_produk = detail_penjualan.produk_id_produk").
 		Where("detail_penjualan.produk_id_produk IN (SELECT id_produk FROM produk)").

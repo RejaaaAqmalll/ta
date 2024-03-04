@@ -6,8 +6,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 	"ta-kasir/base"
 	"ta-kasir/config"
 	"ta-kasir/helper"
@@ -292,6 +290,7 @@ func EditProduk(c *gin.Context) {
 
 	err = db.Debug().Model(model.Produk{}).
 		Where("id_produk = ?", idProduk).
+		Where("hapus = ?", 0).
 		Updates(&produk).Error
 
 	if err != nil {
@@ -544,45 +543,45 @@ func GetProdukBestSeller(c *gin.Context) {
 	}
 
 	db := config.ConnectDatabase()
-	idprodukParam := c.Query("id_produk")
+	// idprodukParam := c.Query("id_produk")
 
-	// memisahkan id
-	idprodukArray := strings.Split(idprodukParam, ",")
+	// // memisahkan id
+	// idprodukArray := strings.Split(idprodukParam, ",")
 
-	var idprodukInt []int
-	for _, idStr := range idprodukArray {
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid parameter"})
-			return
-		}
-		idprodukInt = append(idprodukInt, id)
-	}
+	// var idprodukInt []int
+	// for _, idStr := range idprodukArray {
+	// 	id, err := strconv.Atoi(idStr)
+	// 	if err != nil {
+	// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid parameter"})
+	// 		return
+	// 	}
+	// 	idprodukInt = append(idprodukInt, id)
+	// }
 
 	var listProduk []dataBestSeller
 
-	if len(idprodukInt) > 0 {
-		if err = db.Debug().Table("detail_penjualan").
-			Select("SUM(detail_penjualan.jumlah_produk) as terjual,"+
-				"detail_penjualan.produk_id_produk as id_produk,"+
-				"produk.nama_produk as nama_produk,"+
-				"produk.harga as harga_produk,"+
-				"SUM(detail_penjualan.sub_total) as total_harga").
-			Joins("JOIN produk ON produk.id_produk = detail_penjualan.produk_id_produk").
-			Where("detail_penjualan.produk_id_produk IN (?)", idprodukInt).
-			Where("detail_penjualan.hapus = ?", 0).
-			Group("detail_penjualan.produk_id_produk").
-			Order("detail_penjualan.produk_id_produk ASC").
-			Find(&listProduk).Error; err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
-				Status:  http.StatusInternalServerError,
-				Error:   err,
-				Message: err.Error(),
-				Data:    nil,
-			})
-			return
-		}
+	// if len(idprodukInt) > 0 {
+	if err = db.Debug().Table("detail_penjualan").
+		Select("SUM(detail_penjualan.jumlah_produk) as terjual,"+
+			"detail_penjualan.produk_id_produk as id_produk,"+
+			"produk.nama_produk as nama_produk,"+
+			"produk.harga as harga_produk,"+
+			"SUM(detail_penjualan.sub_total) as total_harga").
+		Joins("JOIN produk ON produk.id_produk = detail_penjualan.produk_id_produk").
+		Where("detail_penjualan.produk_id_produk IN (SELECT id_produk FROM produk)").
+		Where("detail_penjualan.hapus = ?", 0).
+		Group("detail_penjualan.produk_id_produk").
+		Order("detail_penjualan.produk_id_produk ASC").
+		Find(&listProduk).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Response{
+			Status:  http.StatusInternalServerError,
+			Error:   err,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
 	}
+	// }
 
 	// get total terjual
 	dbtotal := config.ConnectDatabase()

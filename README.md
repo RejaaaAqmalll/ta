@@ -26,9 +26,8 @@ Projek ini saya buat bersama ketiga teman saya untuk memenuhi tugas sekolah, kam
 
 Tech Stack atau teknologi yang saya gunakan adalah sebagai berikut
 
-**Client:** React JS dan React Native
 
-**Server:** Golang & Gin
+**Server:** Golang , MySQL
 
 
 
